@@ -234,10 +234,22 @@ function formatDateTime(value: string | null): string {
     return "未観測";
   }
 
-  return new Intl.DateTimeFormat("ja-JP", {
-    dateStyle: "medium",
-    timeStyle: "medium",
+  const formattedParts = new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
     timeZone: DISPLAY_TIME_ZONE,
-  }).format(new Date(value));
+  }).formatToParts(new Date(value));
+
+  const partsMap = Object.fromEntries(
+    formattedParts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return `${partsMap["year"]}/${partsMap["month"]}/${partsMap["day"]} ${partsMap["hour"]}:${partsMap["minute"]}:${partsMap["second"]}`;
 }
