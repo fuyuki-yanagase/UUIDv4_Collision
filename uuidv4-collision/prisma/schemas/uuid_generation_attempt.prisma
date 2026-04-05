@@ -1,0 +1,17 @@
+/// 目的: UUIDv4 生成の全試行履歴を保持し、時系列表示と衝突表示に使う。
+model UuidGenerationAttempt {
+    /// 表示順と同時刻衝突回避に使う連番 ID。
+    id             BigInt         @id @default(autoincrement())
+    /// 実際に生成された UUIDv4。
+    uuid           String         @db.Uuid
+    /// 自動生成か手動トリガーかを表す。
+    generateSource GenerateSource
+    /// 既存 UUID と一致したか。
+    wasCollision   Boolean        @default(false) @map("was_collision")
+    /// 試行日時。
+    createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+    @@index([createdAt(sort: Desc)], map: "uuid_generation_attempts_created_at_idx")
+    @@index([uuid], map: "uuid_generation_attempts_uuid_idx")
+    @@map("uuid_generation_attempts")
+}
