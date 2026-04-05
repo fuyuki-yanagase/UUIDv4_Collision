@@ -39,13 +39,14 @@ const STREAM_STATUS_COLORS = {
 export function RecentUuids(props: RecentUuidsProps): ReactElement {
   return (
     <Paper
+      className="md:h-[760px]"
       p={{ base: "lg", md: "xl" }}
       radius={28}
       shadow="xs"
-      h="100%"
       style={{
         background: "rgba(255, 255, 255, 0.94)",
         borderColor: "rgba(133, 170, 214, 0.24)",
+        overflowAnchor: "none",
       }}
     >
       <Stack h="100%" gap="lg">
@@ -55,15 +56,17 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
             title="直近の生成イベント"
             description="このサイトで一番面白い場所なので、ファーストビューに置いています。"
           />
-          <Group gap="xs">
+          <Group gap="xs" wrap="nowrap">
             <Badge color={STREAM_STATUS_COLORS[props.streamStatus]}>
               {STREAM_STATUS_LABELS[props.streamStatus]}
             </Badge>
-            <Badge color="gray">最終観測 {props.formatDateTime(props.latestAttemptAt)}</Badge>
+            <Badge color="gray" style={{ fontVariantNumeric: "tabular-nums" }}>
+              最終観測 {props.formatDateTime(props.latestAttemptAt)}
+            </Badge>
           </Group>
         </Group>
-        <Group justify="space-between" align="center" gap="md" wrap="wrap">
-          <Text size="sm" c="dimmed" style={{ lineHeight: 1.8 }}>
+        <Group justify="space-between" align="center" gap="md" wrap="nowrap">
+          <Text size="sm" c="dimmed" style={{ lineHeight: 1.8, flex: 1 }}>
             {props.manualTriggerMessage}
           </Text>
           <Button size="sm" loading={props.isManualTriggerRunning} onClick={props.onManualTrigger}>
@@ -71,7 +74,13 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
           </Button>
         </Group>
         <Divider />
-        <Stack gap={0} className="max-h-[560px] overflow-y-auto pr-1 lg:max-h-[560px]">
+        <Stack
+          gap={0}
+          className="min-h-0 flex-1 overflow-y-auto pr-1"
+          style={{
+            overflowAnchor: "none",
+          }}
+        >
           {props.recentAttempts.map((attempt, index) => {
             return (
               <Box key={attempt.id}>
@@ -114,7 +123,7 @@ function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
             </Badge>
             <Badge color="gray">{props.attempt.source}</Badge>
           </Group>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" c="dimmed" ff="mono" style={{ fontVariantNumeric: "tabular-nums" }}>
             {props.formatDateTime(props.attempt.createdAt)}
           </Text>
         </Group>
