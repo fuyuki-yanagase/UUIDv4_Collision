@@ -191,17 +191,20 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
         <Stack gap={32}>
           <MainPanel
             latestAttemptSummary={latestAttemptSummary}
+            snapshot={snapshot}
+          />
+
+          <RecentUuids
+            recentAttempts={snapshot.recentAttempts}
             manualTriggerMessage={manualTriggerMessage}
             streamStatus={streamStatus}
-            snapshot={snapshot}
+            latestAttemptAt={snapshot.stats.latestAttemptAt}
             isManualTriggerRunning={isManualTriggerRunning}
             onManualTrigger={() => {
               void handleManualTrigger();
             }}
             formatDateTime={formatDateTime}
           />
-
-          <RecentUuids recentAttempts={snapshot.recentAttempts} formatDateTime={formatDateTime} />
 
           <SearchUuid
             searchQuery={searchQuery}
