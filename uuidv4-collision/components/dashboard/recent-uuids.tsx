@@ -55,19 +55,21 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
             title="直近の生成イベント"
             description="このサイトで一番面白い場所なので、ファーストビューに置いています。"
           />
+          <Group gap="xs">
+            <Badge color={STREAM_STATUS_COLORS[props.streamStatus]}>
+              {STREAM_STATUS_LABELS[props.streamStatus]}
+            </Badge>
+            <Badge color="gray">最終観測 {props.formatDateTime(props.latestAttemptAt)}</Badge>
+          </Group>
+        </Group>
+        <Group justify="space-between" align="center" gap="md" wrap="wrap">
+          <Text size="sm" c="dimmed" style={{ lineHeight: 1.8 }}>
+            {props.manualTriggerMessage}
+          </Text>
           <Button size="sm" loading={props.isManualTriggerRunning} onClick={props.onManualTrigger}>
             手動で 1 件追加
           </Button>
         </Group>
-        <Group gap="xs">
-          <Badge color={STREAM_STATUS_COLORS[props.streamStatus]}>
-            {STREAM_STATUS_LABELS[props.streamStatus]}
-          </Badge>
-          <Badge color="gray">最終観測 {props.formatDateTime(props.latestAttemptAt)}</Badge>
-        </Group>
-        <Text size="sm" c="dimmed" style={{ lineHeight: 1.8 }}>
-          {props.manualTriggerMessage}
-        </Text>
         <Divider />
         <Stack gap="sm" className="max-h-[560px] overflow-y-auto pr-1 lg:max-h-[560px]">
           {props.recentAttempts.map((attempt) => {
