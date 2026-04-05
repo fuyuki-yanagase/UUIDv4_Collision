@@ -6,7 +6,8 @@
 // =============================================
 
 import { Badge, Box, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
+import styles from "@/components/dashboard/dashboard.module.css";
 import type { DashboardSnapshot } from "@/lib/shared/uuid-domain";
 
 type StreamStatus = "connecting" | "live" | "retrying";
@@ -50,7 +51,7 @@ export function MainPanel(props: MainPanelProps): ReactElement {
         </Text>
       </Stack>
 
-      <div className="grid gap-[18px] md:grid-cols-3">
+      <div className={styles.metricsRow}>
         <MetricBand
           label="試行回数"
           description="これまでに生成して PostgreSQL に保存した総数"
@@ -124,17 +125,19 @@ type MetricBandProps = {
 function MetricBand(props: MetricBandProps): ReactElement {
   return (
     <Box
-      className={[
-        "group relative block pt-2 pb-[18px] no-underline",
-        "before:absolute before:right-0 before:bottom-0 before:left-0 before:h-px before:bg-[rgba(109,130,154,0.45)] before:content-['']",
-        "after:absolute after:bottom-[-1px] after:left-0 after:h-[3px] after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-180 after:ease-out after:content-['']",
-        "hover:after:origin-left hover:after:scale-x-100",
-      ].join(" ")}
+      className={styles.metricBand}
       style={{
-        color: props.toneColor,
-      }}
+        "--metric-color": props.toneColor,
+      } as CSSProperties}
     >
-      <Text size="2.35rem" fw={700} lh={1.05}>
+      <Text
+        size="2.35rem"
+        fw={700}
+        lh={1.05}
+        style={{
+          color: props.toneColor,
+        }}
+      >
         {props.value}
       </Text>
       <Text mt={8} fw={600} c="ink.8">
