@@ -1,11 +1,14 @@
 // =============================================
 // Module: Root Layout
-// Description: アプリ全体のメタデータとグローバルタイポグラフィを定義する。
+// Description: Mantine テーマとグローバルスタイルを全体へ適用する。
 // =============================================
 
 import type { Metadata } from "next";
 import type { ReactElement, ReactNode } from "react";
+import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { appMantineTheme } from "@/lib/shared/mantine-theme";
+import "@mantine/core/styles.css";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -25,12 +28,12 @@ export const metadata: Metadata = {
 };
 
 /**
- * 概要: 全ページ共通の HTML 骨格を返す。
- * 引数: children: React.ReactNode - 画面ごとの本文
- * 戻り値: JSX.Element - HTML ルートレイアウト
+ * 概要: 全ページ共通の HTML 骨格と MantineProvider を返す。
+ * 引数: children: ReactNode - 画面ごとの本文
+ * 戻り値: ReactElement - HTML ルートレイアウト
  * 例外: なし
  * 計算量: O(1)
- * 注意: フォントは CSS 変数経由で Tailwind テーマへ接続する。
+ * 注意: 色スキームは light 固定とし、白基調の読みやすさを優先する。
  */
 export default function RootLayout({
   children,
@@ -39,7 +42,14 @@ export default function RootLayout({
 }>): ReactElement {
   return (
     <html lang="ja" className={`${spaceGrotesk.variable} ${ibmPlexMono.variable}`}>
-      <body>{children}</body>
+      <head>
+        <ColorSchemeScript defaultColorScheme="light" />
+      </head>
+      <body>
+        <MantineProvider theme={appMantineTheme} defaultColorScheme="light">
+          {children}
+        </MantineProvider>
+      </body>
     </html>
   );
 }
