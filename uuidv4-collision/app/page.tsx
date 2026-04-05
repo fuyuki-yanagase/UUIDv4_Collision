@@ -3,7 +3,7 @@
 // Description: UUIDv4 衝突観測ダッシュボードの初期描画を行う。
 // =============================================
 
-import { DashboardClient } from "@/components/dashboard-client";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { getUuidGenerationService } from "@/lib/server/container";
 import type { ReactElement } from "react";
 
