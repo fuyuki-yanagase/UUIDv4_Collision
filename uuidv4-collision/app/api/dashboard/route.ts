@@ -19,7 +19,7 @@ export const runtime = "nodejs";
  */
 export async function GET(request: Request): Promise<Response> {
   const requestUrl = new URL(request.url);
-  const recentLimit = parsePositiveInteger(requestUrl.searchParams.get("recent"), 12, 30);
+  const recentLimit = parsePositiveInteger(requestUrl.searchParams.get("recent"), 10, 30);
   const uuidGenerationService = getUuidGenerationService();
   const dashboardSnapshot = await uuidGenerationService.getDashboardSnapshot(recentLimit);
 

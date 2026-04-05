@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 export default async function Home(): Promise<ReactElement> {
   const uuidGenerationService = getUuidGenerationService();
   const [initialSnapshot, initialSearchResults] = await Promise.all([
-    uuidGenerationService.getDashboardSnapshot(12),
+    uuidGenerationService.getDashboardSnapshot(10),
     uuidGenerationService.searchRegistries("", 8),
   ]);
 
