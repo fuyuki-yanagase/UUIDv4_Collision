@@ -55,19 +55,19 @@ export function MainPanel(props: MainPanelProps): ReactElement {
           label="試行回数"
           description="これまでに生成して PostgreSQL に保存した総数"
           value={props.snapshot.stats.totalAttempts.toLocaleString("ja-JP")}
-          toneClassName="text-[var(--mantine-color-sky-7)]"
+          toneColor="var(--mantine-color-sky-7)"
         />
         <MetricBand
           label="一意 UUID 数"
           description="まだ一度しか観測されていない UUID の累積"
           value={props.snapshot.stats.totalUniqueUuids.toLocaleString("ja-JP")}
-          toneClassName="text-[var(--mantine-color-teal-7)]"
+          toneColor="var(--mantine-color-teal-7)"
         />
         <MetricBand
           label="衝突回数"
           description="既出 UUID と一致したイベントの累積"
           value={props.snapshot.stats.totalCollisions.toLocaleString("ja-JP")}
-          toneClassName="text-[var(--mantine-color-orange-6)]"
+          toneColor="var(--mantine-color-orange-6)"
         />
       </div>
 
@@ -110,7 +110,7 @@ type MetricBandProps = {
   label: string;
   description: string;
   value: string;
-  toneClassName: string;
+  toneColor: string;
 };
 
 /**
@@ -125,12 +125,14 @@ function MetricBand(props: MetricBandProps): ReactElement {
   return (
     <Box
       className={[
-        "group relative block pt-2 pb-[18px] text-inherit no-underline",
+        "group relative block pt-2 pb-[18px] no-underline",
         "before:absolute before:right-0 before:bottom-0 before:left-0 before:h-px before:bg-[rgba(109,130,154,0.45)] before:content-['']",
         "after:absolute after:bottom-[-1px] after:left-0 after:h-[3px] after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-180 after:ease-out after:content-['']",
         "hover:after:origin-left hover:after:scale-x-100",
-        props.toneClassName,
       ].join(" ")}
+      style={{
+        color: props.toneColor,
+      }}
     >
       <Text size="2.35rem" fw={700} lh={1.05}>
         {props.value}
