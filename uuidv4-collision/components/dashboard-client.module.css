@@ -1,0 +1,75 @@
+.heroGrid {
+  align-items: stretch;
+}
+
+.metricRail {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metricLink {
+  position: relative;
+  display: block;
+  padding: 8px 0 18px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.metricLink::before {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: rgba(109, 130, 154, 0.45);
+  content: "";
+}
+
+.metricLink::after {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: currentColor;
+  content: "";
+  transition: width 180ms ease;
+}
+
+.metricLink:hover::after {
+  width: 100%;
+}
+
+.recentEventsScroll {
+  max-height: 560px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.recentEventsScroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.recentEventsScroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(146, 175, 208, 0.72);
+}
+
+.recentEventsScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lowerGrid {
+  align-items: start;
+}
+
+@media (max-width: 62em) {
+  .metricRail {
+    grid-template-columns: 1fr;
+  }
+
+  .recentEventsScroll {
+    max-height: none;
+  }
+}

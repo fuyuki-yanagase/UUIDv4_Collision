@@ -15,10 +15,8 @@ import {
   Grid,
   Group,
   Paper,
-  RingProgress,
   SimpleGrid,
   Stack,
-  Table,
   Text,
   TextInput,
   Title,
@@ -26,6 +24,7 @@ import {
 import { startTransition, useDeferredValue, useEffect, useEffectEvent, useState } from "react";
 import type { ReactElement } from "react";
 import type { DashboardSnapshot, UuidAttempt, UuidSearchResult } from "@/lib/shared/uuid-domain";
+import classes from "@/components/dashboard-client.module.css";
 
 type DashboardClientProps = {
   initialSnapshot: DashboardSnapshot;
@@ -64,9 +63,6 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const latestAttempt = snapshot.recentAttempts[0];
-  const collisionRate = snapshot.stats.totalAttempts === 0
-    ? 0
-    : Number(((snapshot.stats.totalCollisions / snapshot.stats.totalAttempts) * 100).toFixed(6));
   const latestAttemptSummary = !latestAttempt
     ? "まだ試行履歴はありません。ワーカーを起動すると、1 秒ごとに記録が積み上がります。"
     : latestAttempt.wasCollision
@@ -79,7 +75,7 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
    * 戻り値: void
    * 例外: なし
    * 計算量: O(1)
-   * 注意: startTransition を使い、手入力中の検索体験を阻害しにくくする。
+   * 注意: startTransition を使い、入力中の体験を阻害しにくくする。
    */
   const handleIncomingSnapshot = useEffectEvent((nextSnapshot: DashboardSnapshot): void => {
     startTransition(() => {
@@ -94,7 +90,7 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
    * 戻り値: void
    * 例外: なし
    * 計算量: O(1)
-   * 注意: 検索ボックスのタイピングと結果反映の競合を緩めるため transition を使う。
+   * 注意: タイピングの追従性を落とさないため transition を使う。
    */
   const applySearchResults = useEffectEvent((nextSearchResults: UuidSearchResult[]): void => {
     startTransition(() => {
@@ -214,110 +210,68 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
   };
 
   return (
-    <Box py={56}>
-      <Container size={1200}>
-        <Stack gap={28}>
-          <Paper
-            radius={28}
-            p={{ base: 24, md: 34 }}
-            shadow="sm"
-            style={{
-              background: "rgba(255, 255, 255, 0.9)",
-              borderColor: "rgba(133, 170, 214, 0.22)",
-              backdropFilter: "blur(12px)",
-            }}
-          >
-            <Grid gap={28} align="stretch">
-              <Grid.Col span={{ base: 12, lg: 8 }}>
-                <Stack gap="lg">
-                  <Group gap="xs">
-                    <Badge color="sky">UUIDv4 Collision Observatory</Badge>
-                    <Badge color="gray">PostgreSQL + SSE</Badge>
-                    <Badge color="gray">1Hz Worker</Badge>
-                  </Group>
-                  <Stack gap={10}>
-                    <Title order={1} style={{ fontSize: "clamp(2rem, 5vw, 3.7rem)", lineHeight: 1.12 }}>
-                      1 秒ごとに UUIDv4 を追加して、気が遠くなるほど低い衝突確率を観測する。
-                    </Title>
-                    <Text c="dimmed" size="lg" maw={760} style={{ lineHeight: 1.8 }}>
-                      画面は Zenn のように情報を読み取りやすく、Nani 翻訳のように軽やかな余白を持たせています。
-                      ワーカーが PostgreSQL に継続書き込みし、Next.js が SSE で静かに追従します。
-                    </Text>
-                  </Stack>
-                  <Paper
-                    p="lg"
-                    radius={22}
-                    style={{
-                      background: "linear-gradient(135deg, rgba(56, 159, 251, 0.08), rgba(56, 159, 251, 0.02))",
-                      borderColor: "rgba(56, 159, 251, 0.18)",
-                    }}
-                  >
-                    <Stack gap={8}>
-                      <Text size="xs" fw={700} c="sky.7" tt="uppercase" style={{ letterSpacing: "0.12em" }}>
-                        Latest Atmosphere
-                      </Text>
-                      <Text size="lg" fw={600} c="ink.9" style={{ lineHeight: 1.7 }}>
-                        {latestAttemptSummary}
-                      </Text>
-                    </Stack>
-                  </Paper>
+    <Box py={{ base: 36, md: 56 }}>
+      <Container size={1240}>
+        <Stack gap={32}>
+          <Grid gap={{ base: 24, lg: 32 }} className={classes.heroGrid}>
+            <Grid.Col span={{ base: 12, lg: 7 }}>
+              <Stack gap={24}>
+                <Stack gap={12}>
+                  <Title order={1} style={{ fontSize: "clamp(2.3rem, 6vw, 4.8rem)", lineHeight: 1.06 }}>
+                    UUIDv4 がいつか本当に衝突するのか、毎秒ひたすら観測する。
+                  </Title>
+                  <Text c="dimmed" size="lg" maw={700} style={{ lineHeight: 1.85 }}>
+                    {latestAttemptSummary}
+                  </Text>
                 </Stack>
-              </Grid.Col>
 
-              <Grid.Col span={{ base: 12, lg: 4 }}>
+                <Box className={classes.metricRail}>
+                  <MetricBand
+                    label="試行回数"
+                    description="これまでに生成して PostgreSQL に保存した総数"
+                    value={snapshot.stats.totalAttempts.toLocaleString("ja-JP")}
+                    tone="sky.7"
+                  />
+                  <MetricBand
+                    label="一意 UUID 数"
+                    description="まだ一度しか観測されていない UUID の累積"
+                    value={snapshot.stats.totalUniqueUuids.toLocaleString("ja-JP")}
+                    tone="teal.7"
+                  />
+                  <MetricBand
+                    label="衝突回数"
+                    description="既出 UUID と一致したイベントの累積"
+                    value={snapshot.stats.totalCollisions.toLocaleString("ja-JP")}
+                    tone="orange.6"
+                  />
+                </Box>
+
                 <Paper
-                  h="100%"
-                  p="xl"
-                  radius={24}
+                  p={{ base: "lg", md: "xl" }}
+                  radius={28}
                   shadow="xs"
                   style={{
-                    background: "linear-gradient(180deg, rgba(248, 251, 255, 0.98), rgba(241, 247, 255, 0.94))",
-                    borderColor: "rgba(133, 170, 214, 0.24)",
+                    background: "rgba(255, 255, 255, 0.92)",
+                    borderColor: "rgba(133, 170, 214, 0.22)",
                   }}
                 >
-                  <Stack justify="space-between" h="100%" gap="lg">
-                    <Group justify="space-between" align="flex-start">
-                      <Stack gap={2}>
-                        <Text size="xs" fw={700} c="dimmed" tt="uppercase" style={{ letterSpacing: "0.12em" }}>
-                          Live Status
-                        </Text>
-                        <Title order={3}>観測を 1 件だけ上乗せする</Title>
-                      </Stack>
-                      <Badge color={STREAM_STATUS_COLORS[streamStatus]}>
-                        {STREAM_STATUS_LABELS[streamStatus]}
-                      </Badge>
-                    </Group>
-                    <Group align="center" justify="space-between" wrap="nowrap">
-                      <RingProgress
-                        size={116}
-                        thickness={12}
-                        roundCaps
-                        sections={[
-                          { value: Math.max(collisionRate, 0.4), color: collisionRate > 0 ? "orange.5" : "sky.5" },
-                        ]}
-                        label={
-                          <Stack gap={0} align="center">
-                            <Text fw={700} size="lg">
-                              {collisionRate.toFixed(4)}%
-                            </Text>
-                            <Text size="10px" c="dimmed" tt="uppercase" style={{ letterSpacing: "0.1em" }}>
-                              collision
-                            </Text>
-                          </Stack>
-                        }
-                      />
-                      <Stack gap={4} flex={1}>
-                        <Text size="sm" c="dimmed" style={{ lineHeight: 1.7 }}>
-                          SSE 接続が有効な間、ワーカーと手動追加の結果は自動で反映されます。
-                        </Text>
-                        <Text size="sm" fw={600} c="ink.9" style={{ lineHeight: 1.7 }}>
-                          {manualTriggerMessage}
-                        </Text>
-                      </Stack>
-                    </Group>
+                  <Group justify="space-between" align="flex-start" gap="lg" wrap="wrap">
+                    <Stack gap={6} maw={620}>
+                      <Group gap="xs">
+                        <Badge color={STREAM_STATUS_COLORS[streamStatus]}>
+                          {STREAM_STATUS_LABELS[streamStatus]}
+                        </Badge>
+                        <Badge color="gray">最終観測 {formatDateTime(snapshot.stats.latestAttemptAt)}</Badge>
+                      </Group>
+                      <Text fw={600} size="lg" c="ink.9" style={{ lineHeight: 1.7 }}>
+                        {manualTriggerMessage}
+                      </Text>
+                      <Text size="sm" c="dimmed" style={{ lineHeight: 1.8 }}>
+                        手動追加は 1 回だけ UUIDv4 を生成します。値はユーザ入力ではなくサーバ側で生成されます。
+                      </Text>
+                    </Stack>
                     <Button
                       size="md"
-                      fullWidth
                       loading={isManualTriggerRunning}
                       onClick={() => {
                         void handleManualTrigger();
@@ -325,74 +279,44 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
                     >
                       手動で 1 件追加
                     </Button>
-                  </Stack>
+                  </Group>
                 </Paper>
-              </Grid.Col>
-            </Grid>
-          </Paper>
-
-          <SimpleGrid cols={{ base: 1, sm: 2, xl: 4 }} spacing="lg">
-            <StatSurface
-              label="総試行回数"
-              value={snapshot.stats.totalAttempts.toLocaleString("ja-JP")}
-              tone="sky"
-            />
-            <StatSurface
-              label="一意 UUID 数"
-              value={snapshot.stats.totalUniqueUuids.toLocaleString("ja-JP")}
-              tone="teal"
-            />
-            <StatSurface
-              label="衝突回数"
-              value={snapshot.stats.totalCollisions.toLocaleString("ja-JP")}
-              tone="orange"
-            />
-            <StatSurface
-              label="最終観測時刻"
-              value={formatDateTime(snapshot.stats.latestAttemptAt)}
-              tone="gray"
-            />
-          </SimpleGrid>
-
-          <Grid gap="lg" align="stretch">
-            <Grid.Col span={{ base: 12, lg: 7 }}>
-              <Paper
-                p={{ base: "lg", md: "xl" }}
-                shadow="xs"
-                style={{
-                  background: "rgba(255, 255, 255, 0.9)",
-                  borderColor: "rgba(133, 170, 214, 0.22)",
-                }}
-              >
-                <SectionHeader
-                  eyebrow="Recent Attempts"
-                  title="直近の生成イベント"
-                  description={`最終更新: ${formatDateTime(snapshot.generatedAt)}`}
-                />
-                <Divider my="lg" />
-                <Table.ScrollContainer minWidth={720}>
-                  <Table verticalSpacing="md" horizontalSpacing="md" striped highlightOnHover>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>状態</Table.Th>
-                        <Table.Th>ソース</Table.Th>
-                        <Table.Th>UUID</Table.Th>
-                        <Table.Th>時刻</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {snapshot.recentAttempts.map((attempt) => {
-                        return <AttemptRow key={attempt.id} attempt={attempt} />;
-                      })}
-                    </Table.Tbody>
-                  </Table>
-                </Table.ScrollContainer>
-              </Paper>
+              </Stack>
             </Grid.Col>
 
             <Grid.Col span={{ base: 12, lg: 5 }}>
               <Paper
                 p={{ base: "lg", md: "xl" }}
+                radius={28}
+                shadow="xs"
+                h="100%"
+                style={{
+                  background: "rgba(255, 255, 255, 0.94)",
+                  borderColor: "rgba(133, 170, 214, 0.24)",
+                }}
+              >
+                <Stack h="100%" gap="lg">
+                  <SectionHeader
+                    eyebrow="Recent Attempts"
+                    title="直近の生成イベント"
+                    description="このサイトで一番面白い場所なので、ファーストビューに置いています。"
+                  />
+                  <Divider />
+                  <Stack gap="sm" className={classes.recentEventsScroll}>
+                    {snapshot.recentAttempts.map((attempt) => {
+                      return <AttemptSurface key={attempt.id} attempt={attempt} />;
+                    })}
+                  </Stack>
+                </Stack>
+              </Paper>
+            </Grid.Col>
+          </Grid>
+
+          <Grid gap={{ base: 20, lg: 28 }} className={classes.lowerGrid}>
+            <Grid.Col span={{ base: 12, lg: 7 }}>
+              <Paper
+                p={{ base: "lg", md: "xl" }}
+                radius={28}
                 shadow="xs"
                 style={{
                   background: "rgba(255, 255, 255, 0.9)",
@@ -402,7 +326,7 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
                 <SectionHeader
                   eyebrow="UUID Search"
                   title="生成済み UUID を検索する"
-                  description="完全一致でも部分一致でも検索できます。空欄なら最近観測した UUID を表示します。"
+                  description="部分一致でも探せます。空欄のままなら最近観測した UUID を表示します。"
                 />
                 <TextInput
                   mt="lg"
@@ -420,10 +344,43 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
                   <Badge color="gray">{searchResults.length} items</Badge>
                 </Group>
                 <Divider my="lg" />
-                <Stack gap="md">
+                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
                   {searchResults.map((result) => {
                     return <SearchResultSurface key={result.uuid} result={result} />;
                   })}
+                </SimpleGrid>
+              </Paper>
+            </Grid.Col>
+
+            <Grid.Col span={{ base: 12, lg: 5 }}>
+              <Paper
+                p={{ base: "lg", md: "xl" }}
+                radius={28}
+                shadow="xs"
+                style={{
+                  background: "rgba(255, 255, 255, 0.9)",
+                  borderColor: "rgba(133, 170, 214, 0.22)",
+                }}
+              >
+                <SectionHeader
+                  eyebrow="Twitter Bot"
+                  title="Bot の投稿をまとめる場所"
+                  description="優先度は低めですが、将来的に Twitter bot の投稿履歴や固定リンクをここへ集約できます。"
+                />
+                <Divider my="lg" />
+                <Stack gap="md">
+                  <TwitterPlaceholder
+                    title="直近ポストの一覧"
+                    description="衝突発生時や一定件数ごとの自動投稿ログを並べる想定です。"
+                  />
+                  <TwitterPlaceholder
+                    title="衝突時の固定リンク"
+                    description="初回衝突が起きた瞬間の投稿や関連スレッドを強調表示できます。"
+                  />
+                  <TwitterPlaceholder
+                    title="運用メモ"
+                    description="bot 側の稼働状況、投稿失敗、レート制限などの補足表示にも使えます。"
+                  />
                 </Stack>
               </Paper>
             </Grid.Col>
@@ -462,86 +419,91 @@ function SectionHeader(props: SectionHeaderProps): ReactElement {
   );
 }
 
-type StatSurfaceProps = {
+type MetricBandProps = {
   label: string;
+  description: string;
   value: string;
-  tone: "sky" | "teal" | "orange" | "gray";
+  tone: string;
 };
 
 /**
- * 概要: 上部のサマリー統計カードを描画する。
- * 引数: props: StatSurfaceProps - ラベル、値、アクセント色
- * 戻り値: ReactElement - 統計カード
+ * 概要: ファーストビューの統計帯 1 件分を描画する。
+ * 引数: props: MetricBandProps - ラベル、説明文、値、色
+ * 戻り値: ReactElement - 統計表示ブロック
  * 例外: なし
  * 計算量: O(1)
- * 注意: 数値を主役にしつつ、白背景で読み疲れしない強さに抑える。
+ * 注意: 下線アニメーションで hover 時の反応だけを静かに強める。
  */
-function StatSurface(props: StatSurfaceProps): ReactElement {
+function MetricBand(props: MetricBandProps): ReactElement {
   return (
-    <Paper
-      p="lg"
-      shadow="xs"
-      style={{
-        background: "rgba(255, 255, 255, 0.88)",
-        borderColor: "rgba(133, 170, 214, 0.2)",
-      }}
-    >
-      <Stack gap={8}>
-        <Text size="xs" fw={700} tt="uppercase" c="dimmed" style={{ letterSpacing: "0.12em" }}>
-          {props.label}
-        </Text>
-        <Text fw={700} size="1.8rem" c={props.tone === "gray" ? "ink.8" : `${props.tone}.7`}>
-          {props.value}
-        </Text>
-      </Stack>
-    </Paper>
+    <Box className={classes.metricLink} c={props.tone}>
+      <Text size="2.35rem" fw={700} lh={1.05}>
+        {props.value}
+      </Text>
+      <Text mt={8} fw={600} c="ink.8">
+        {props.label}
+      </Text>
+      <Text mt={4} size="sm" c="dimmed" style={{ lineHeight: 1.7 }}>
+        {props.description}
+      </Text>
+    </Box>
   );
 }
 
-type AttemptRowProps = {
+type AttemptSurfaceProps = {
   attempt: UuidAttempt;
 };
 
 /**
- * 概要: 直近の UUID 生成イベント 1 件分を表の行として描画する。
- * 引数: props: AttemptRowProps - 表示対象の試行レコード
- * 戻り値: ReactElement - テーブル行
+ * 概要: 直近の UUID 生成イベント 1 件分をコンパクトなカードで描画する。
+ * 引数: props: AttemptSurfaceProps - 表示対象の試行レコード
+ * 戻り値: ReactElement - イベント表示カード
  * 例外: なし
  * 計算量: O(1)
- * 注意: UUID は Code 表示にして視認しやすくし、状態は Badge で即判別できるようにする。
+ * 注意: UUID の視認性を優先しつつ、時刻と状態の確認も 1 目線で済むようにする。
  */
-function AttemptRow(props: AttemptRowProps): ReactElement {
+function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
   return (
-    <Table.Tr>
-      <Table.Td>
-        <Badge color={props.attempt.wasCollision ? "orange" : "teal"}>
-          {props.attempt.wasCollision ? "COLLISION" : "UNIQUE"}
-        </Badge>
-      </Table.Td>
-      <Table.Td>
-        <Badge color="gray">{props.attempt.source}</Badge>
-      </Table.Td>
-      <Table.Td>
+    <Paper
+      p="md"
+      radius="xl"
+      style={{
+        background: props.attempt.wasCollision
+          ? "linear-gradient(135deg, rgba(255, 237, 214, 0.9), rgba(255, 255, 255, 0.98))"
+          : "rgba(248, 251, 255, 0.98)",
+        borderColor: props.attempt.wasCollision
+          ? "rgba(237, 137, 54, 0.28)"
+          : "rgba(133, 170, 214, 0.18)",
+      }}
+    >
+      <Stack gap={10}>
+        <Group justify="space-between" align="center" wrap="wrap">
+          <Group gap="xs">
+            <Badge color={props.attempt.wasCollision ? "orange" : "teal"}>
+              {props.attempt.wasCollision ? "COLLISION" : "UNIQUE"}
+            </Badge>
+            <Badge color="gray">{props.attempt.source}</Badge>
+          </Group>
+          <Text size="xs" c="dimmed">
+            {formatDateTime(props.attempt.createdAt)}
+          </Text>
+        </Group>
         <Code
           c="ink.9"
           style={{
             display: "block",
             whiteSpace: "normal",
             wordBreak: "break-all",
-            background: "rgba(240, 246, 253, 0.9)",
-            border: "1px solid rgba(133, 170, 214, 0.2)",
-            padding: "10px 12px",
+            background: "transparent",
+            padding: 0,
+            fontSize: "0.92rem",
+            lineHeight: 1.75,
           }}
         >
           {props.attempt.uuid}
         </Code>
-      </Table.Td>
-      <Table.Td>
-        <Text size="sm" c="dimmed">
-          {formatDateTime(props.attempt.createdAt)}
-        </Text>
-      </Table.Td>
-    </Table.Tr>
+      </Stack>
+    </Paper>
   );
 }
 
@@ -555,13 +517,13 @@ type SearchResultSurfaceProps = {
  * 戻り値: ReactElement - 検索結果カード
  * 例外: なし
  * 計算量: O(1)
- * 注意: UUID 本体と集計値を近接配置し、探索時の往復視線を減らす。
+ * 注意: UUID と集計値を近接配置し、探索時の往復視線を減らす。
  */
 function SearchResultSurface(props: SearchResultSurfaceProps): ReactElement {
   return (
     <Paper
       p="md"
-      radius="lg"
+      radius="xl"
       style={{
         background: "rgba(247, 251, 255, 0.92)",
         borderColor: "rgba(133, 170, 214, 0.2)",
@@ -596,13 +558,49 @@ function SearchResultSurface(props: SearchResultSurfaceProps): ReactElement {
   );
 }
 
+type TwitterPlaceholderProps = {
+  title: string;
+  description: string;
+};
+
+/**
+ * 概要: 今後 Twitter bot の集約先となるプレースホルダーを描画する。
+ * 引数: props: TwitterPlaceholderProps - 見出しと説明
+ * 戻り値: ReactElement - プレースホルダーブロック
+ * 例外: なし
+ * 計算量: O(1)
+ * 注意: 未実装であることを曖昧にせず、用途だけは伝える。
+ */
+function TwitterPlaceholder(props: TwitterPlaceholderProps): ReactElement {
+  return (
+    <Paper
+      p="md"
+      radius="xl"
+      style={{
+        background: "rgba(247, 251, 255, 0.92)",
+        borderColor: "rgba(133, 170, 214, 0.2)",
+      }}
+    >
+      <Stack gap={6}>
+        <Group justify="space-between">
+          <Text fw={600}>{props.title}</Text>
+          <Badge color="gray">準備中</Badge>
+        </Group>
+        <Text size="sm" c="dimmed" style={{ lineHeight: 1.8 }}>
+          {props.description}
+        </Text>
+      </Stack>
+    </Paper>
+  );
+}
+
 /**
  * 概要: ISO 文字列を日本語向けの日時表記へ整形する。
  * 引数: value: string | null - ISO 8601 文字列
  * 戻り値: string - 表示用の日時文字列
  * 例外: なし
  * 計算量: O(1)
- * 注意: null は「未観測」と表示して初期状態でも意味が通るようにする。
+ * 注意: 時刻はサーバとクライアントの差を避けるため Asia/Tokyo 固定で整形する。
  */
 function formatDateTime(value: string | null): string {
   if (!value) {
