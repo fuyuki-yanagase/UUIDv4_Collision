@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UUIDv4 Collision Observatory
 
-## Getting Started
+UUIDv4 を 1 秒ごとに PostgreSQL へ追加し、衝突が起きるかを観測する Next.js アプリです。  
+画面は SSE でリアルタイム更新され、手動トリガーで追加イベントを増やせます。
 
-First, run the development server:
+## 構成
+
+- `web`: Next.js 16。ダッシュボード表示、UUID 検索、手動追加 API、SSE 配信を担当
+- `worker`: Node.js + `tsx`。1 秒ごとに UUIDv4 を生成して PostgreSQL へ保存
+- `postgres`: UUID 一覧、生成履歴、衝突回数を保持
+
+## 主な機能
+
+- 1 秒ごとの UUIDv4 自動追加
+- SSE によるリアルタイム更新
+- 手動追加ボタン
+- 直近の生成 UUID 一覧
+- 生成済み UUID の部分一致検索
+- 衝突回数、一意 UUID 数、総試行回数の可視化
+
+## 追加すると良い機能案
+
+- 最初の衝突までの予測時間や理論値の表示
+- 1 分、1 時間、24 時間の生成レート表示
+- 衝突が起きた瞬間の強調演出
+- UUID の prefix 別ヒートマップ
+- 検索結果の共有リンク
+
+## 起動方法
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+起動後の URL:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Web: `http://localhost:3000`
+- PostgreSQL: `localhost:5432`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 開発用コマンド
 
-## Learn More
+```bash
+pnpm dev
+pnpm worker
+pnpm lint
+pnpm test
+```
 
-To learn more about Next.js, take a look at the following resources:
+## データモデル
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `uuid_registry`
+  - 一意な UUID の集合
+  - `seen_count` で同一 UUID の観測回数を保持
+- `uuid_generation_attempts`
+  - すべての生成試行履歴
+  - `was_collision` で衝突かどうかを記録
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 実装メモ
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 手動追加でも UUID 値はユーザ入力させず、必ずサーバ側で生成します
+- SSE は PostgreSQL の `LISTEN/NOTIFY` を使って更新契機を受け取ります
+- 初期テーブルは `docker/postgres/init.sql` で作成します

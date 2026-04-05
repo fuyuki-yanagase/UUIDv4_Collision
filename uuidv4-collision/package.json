@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "worker": "tsx scripts/uuid-worker.ts",
+    "worker:dev": "tsx watch scripts/uuid-worker.ts",
+    "test": "node --import tsx --test test/**/*.test.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
