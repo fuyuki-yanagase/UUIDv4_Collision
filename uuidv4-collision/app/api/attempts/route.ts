@@ -19,7 +19,7 @@ export const runtime = "nodejs";
 export async function POST(): Promise<Response> {
   const uuidGenerationService = getUuidGenerationService();
   const attempt = await uuidGenerationService.recordGeneratedAttempt("MANUAL");
-  const snapshot = await uuidGenerationService.getDashboardSnapshot(12);
+  const snapshot = await uuidGenerationService.getDashboardSnapshot(10);
 
   return Response.json({
     attempt,

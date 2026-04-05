@@ -61,7 +61,7 @@ export async function GET(request: Request): Promise<Response> {
        * 注意: 送信に失敗した場合は呼び出し側でストリームを終了する。
        */
       const sendSnapshot = async (): Promise<void> => {
-        const snapshot = await uuidGenerationService.getDashboardSnapshot(12);
+        const snapshot = await uuidGenerationService.getDashboardSnapshot(10);
         controller.enqueue(encoder.encode(formatSseEvent("dashboard", snapshot)));
       };
 
