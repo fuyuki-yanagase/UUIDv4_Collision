@@ -5,7 +5,7 @@
 
 import type { Metadata } from "next";
 import type { ReactElement, ReactNode } from "react";
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { appMantineTheme } from "@/lib/shared/mantine-theme";
 import "@mantine/core/styles.css";
@@ -41,12 +41,13 @@ export default function RootLayout({
   children: ReactNode;
 }>): ReactElement {
   return (
-    <html lang="ja" className={`${spaceGrotesk.variable} ${ibmPlexMono.variable}`}>
-      <head>
-        <ColorSchemeScript defaultColorScheme="light" />
-      </head>
+    <html
+      lang="ja"
+      data-mantine-color-scheme="light"
+      className={`${spaceGrotesk.variable} ${ibmPlexMono.variable}`}
+    >
       <body>
-        <MantineProvider theme={appMantineTheme} defaultColorScheme="light">
+        <MantineProvider theme={appMantineTheme} forceColorScheme="light">
           {children}
         </MantineProvider>
       </body>
