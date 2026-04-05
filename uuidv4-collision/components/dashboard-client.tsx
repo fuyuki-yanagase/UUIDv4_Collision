@@ -44,6 +44,8 @@ const STREAM_STATUS_COLORS = {
   retrying: "orange",
 } as const;
 
+const DISPLAY_TIME_ZONE = "Asia/Tokyo";
+
 /**
  * 目的: SSE、検索、手動追加をまとめて扱うダッシュボード UI を提供する。
  * 主要責務: 状態保持、リアルタイム更新、UUID 検索、手動追加ボタン
@@ -610,5 +612,7 @@ function formatDateTime(value: string | null): string {
   return new Intl.DateTimeFormat("ja-JP", {
     dateStyle: "medium",
     timeStyle: "medium",
+    hour12: false,
+    timeZone: DISPLAY_TIME_ZONE,
   }).format(new Date(value));
 }
