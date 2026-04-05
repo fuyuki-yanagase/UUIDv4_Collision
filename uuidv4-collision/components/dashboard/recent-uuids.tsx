@@ -196,7 +196,7 @@ type StatusPillProps = {
 function StatusPill(props: StatusPillProps): ReactElement {
   return (
     <Box
-      className="inline-flex items-center rounded-full px-3 py-1"
+      className="inline-flex min-h-[28px] items-center rounded-full px-3.5 py-1.5"
       style={{
         background: props.toneColor,
       }}
@@ -206,10 +206,11 @@ function StatusPill(props: StatusPillProps): ReactElement {
         fw={700}
         tt="uppercase"
         style={{
-          lineHeight: 1.3,
+          lineHeight: 1.2,
           color: props.textColor ?? "white",
           fontVariantNumeric: props.mono ? "tabular-nums" : undefined,
           fontFamily: props.mono ? "var(--font-ibm-plex-mono), monospace" : undefined,
+          letterSpacing: props.mono ? "0" : "0.04em",
         }}
       >
         {props.children}
