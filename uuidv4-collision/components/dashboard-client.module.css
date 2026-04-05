@@ -30,15 +30,18 @@
   position: absolute;
   bottom: -1px;
   left: 0;
-  width: 0;
+  width: 100%;
   height: 3px;
   background: currentColor;
   content: "";
-  transition: width 180ms ease;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 180ms ease;
 }
 
 .metricLink:hover::after {
-  width: 100%;
+  transform: scaleX(1);
+  transform-origin: left center;
 }
 
 .recentEventsScroll {
