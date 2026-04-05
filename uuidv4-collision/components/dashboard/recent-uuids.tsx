@@ -5,7 +5,7 @@
 // Description: 直近のリアルタイム UUID 一覧と手動追加ボタンを描画する。
 // =============================================
 
-import { Badge, Button, Code, Divider, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { Badge, Box, Button, Code, Divider, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import type { ReactElement } from "react";
 import type { UuidAttempt } from "@/lib/shared/uuid-domain";
 
@@ -71,14 +71,13 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
           </Button>
         </Group>
         <Divider />
-        <Stack gap="sm" className="max-h-[560px] overflow-y-auto pr-1 lg:max-h-[560px]">
-          {props.recentAttempts.map((attempt) => {
+        <Stack gap={0} className="max-h-[560px] overflow-y-auto pr-1 lg:max-h-[560px]">
+          {props.recentAttempts.map((attempt, index) => {
             return (
-              <AttemptSurface
-                key={attempt.id}
-                attempt={attempt}
-                formatDateTime={props.formatDateTime}
-              />
+              <Box key={attempt.id}>
+                <AttemptSurface attempt={attempt} formatDateTime={props.formatDateTime} />
+                {index < props.recentAttempts.length - 1 ? <Divider /> : null}
+              </Box>
             );
           })}
         </Stack>
@@ -102,17 +101,10 @@ type AttemptSurfaceProps = {
  */
 function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
   return (
-    <Paper
-      p="md"
-      radius="xl"
-      style={{
-        background: props.attempt.wasCollision
-          ? "linear-gradient(135deg, rgba(255, 237, 214, 0.9), rgba(255, 255, 255, 0.98))"
-          : "rgba(248, 251, 255, 0.98)",
-        borderColor: props.attempt.wasCollision
-          ? "rgba(237, 137, 54, 0.28)"
-          : "rgba(133, 170, 214, 0.18)",
-      }}
+    <Box
+      px="xs"
+      py="md"
+      className="transition-colors duration-150 hover:bg-[rgba(244,249,255,0.9)]"
     >
       <Stack gap={10}>
         <Group justify="space-between" align="center" wrap="wrap">
@@ -134,14 +126,14 @@ function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
             wordBreak: "break-all",
             background: "transparent",
             padding: 0,
-            fontSize: "0.92rem",
-            lineHeight: 1.75,
+            fontSize: "0.95rem",
+            lineHeight: 1.8,
           }}
         >
           {props.attempt.uuid}
         </Code>
       </Stack>
-    </Paper>
+    </Box>
   );
 }
 
