@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 /// 目的: 生成済み UUIDv4 の一意集合を保持し、衝突回数を集計する。
