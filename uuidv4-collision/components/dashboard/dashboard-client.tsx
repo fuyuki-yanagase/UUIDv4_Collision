@@ -5,7 +5,7 @@
 // Description: ダッシュボード全体の状態管理と 4 セクションの配置を担う。
 // =============================================
 
-import { Box, Container, Grid, Stack } from "@mantine/core";
+import { Box, Container, Stack } from "@mantine/core";
 import { startTransition, useDeferredValue, useEffect, useEffectEvent, useState } from "react";
 import type { ReactElement } from "react";
 import { MainPanel } from "@/components/dashboard/main-panel";
@@ -189,39 +189,29 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
     <Box py={{ base: 36, md: 56 }}>
       <Container size={1240}>
         <Stack gap={32}>
-          <Grid gap={{ base: 24, lg: 32 }} align="stretch">
-            <Grid.Col span={{ base: 12, lg: 7 }}>
-              <MainPanel
-                latestAttemptSummary={latestAttemptSummary}
-                manualTriggerMessage={manualTriggerMessage}
-                streamStatus={streamStatus}
-                snapshot={snapshot}
-                isManualTriggerRunning={isManualTriggerRunning}
-                onManualTrigger={() => {
-                  void handleManualTrigger();
-                }}
-                formatDateTime={formatDateTime}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, lg: 5 }}>
-              <RecentUuids recentAttempts={snapshot.recentAttempts} formatDateTime={formatDateTime} />
-            </Grid.Col>
-          </Grid>
+          <MainPanel
+            latestAttemptSummary={latestAttemptSummary}
+            manualTriggerMessage={manualTriggerMessage}
+            streamStatus={streamStatus}
+            snapshot={snapshot}
+            isManualTriggerRunning={isManualTriggerRunning}
+            onManualTrigger={() => {
+              void handleManualTrigger();
+            }}
+            formatDateTime={formatDateTime}
+          />
 
-          <Grid gap={{ base: 20, lg: 28 }} align="start">
-            <Grid.Col span={{ base: 12, lg: 7 }}>
-              <SearchUuid
-                searchQuery={searchQuery}
-                searchResults={searchResults}
-                isSearchLoading={isSearchLoading}
-                onSearchQueryChange={setSearchQuery}
-                formatDateTime={formatDateTime}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, lg: 5 }}>
-              <TwitterBot />
-            </Grid.Col>
-          </Grid>
+          <RecentUuids recentAttempts={snapshot.recentAttempts} formatDateTime={formatDateTime} />
+
+          <SearchUuid
+            searchQuery={searchQuery}
+            searchResults={searchResults}
+            isSearchLoading={isSearchLoading}
+            onSearchQueryChange={setSearchQuery}
+            formatDateTime={formatDateTime}
+          />
+
+          <TwitterBot />
         </Stack>
       </Container>
     </Box>
