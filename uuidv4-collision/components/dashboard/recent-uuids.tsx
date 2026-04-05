@@ -109,11 +109,16 @@ type AttemptSurfaceProps = {
  * 注意: UUID の視認性を優先しつつ、時刻と状態の確認も 1 目線で済むようにする。
  */
 function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
+  const isManualAttempt = props.attempt.source === "MANUAL";
+
   return (
     <Box
       px="xs"
       py="md"
-      className="transition-colors duration-150 hover:bg-[rgba(244,249,255,0.9)]"
+      className="transition-colors duration-150"
+      style={{
+        background: isManualAttempt ? "rgba(34, 197, 94, 0.08)" : undefined,
+      }}
     >
       <Stack gap={10}>
         <Group justify="space-between" align="center" wrap="wrap">
@@ -121,7 +126,7 @@ function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
             <Badge color={props.attempt.wasCollision ? "orange" : "teal"}>
               {props.attempt.wasCollision ? "COLLISION" : "UNIQUE"}
             </Badge>
-            <Badge color="gray">
+            <Badge color={isManualAttempt ? "green" : "gray"}>
               {props.attempt.source}
             </Badge>
           </Group>
