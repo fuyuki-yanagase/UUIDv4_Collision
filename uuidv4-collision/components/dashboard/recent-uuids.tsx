@@ -2,21 +2,38 @@
 
 // =============================================
 // Module: Dashboard Recent UUIDs
-// Description: 右上のリアルタイム UUID 一覧を描画する。
+// Description: 直近のリアルタイム UUID 一覧と手動追加ボタンを描画する。
 // =============================================
 
-import { Badge, Code, Divider, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { Badge, Button, Code, Divider, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import type { ReactElement } from "react";
 import type { UuidAttempt } from "@/lib/shared/uuid-domain";
 
 type RecentUuidsProps = {
   recentAttempts: UuidAttempt[];
+  manualTriggerMessage: string;
+  streamStatus: "connecting" | "live" | "retrying";
+  latestAttemptAt: string | null;
+  isManualTriggerRunning: boolean;
+  onManualTrigger: () => void;
   formatDateTime: (value: string | null) => string;
 };
 
+const STREAM_STATUS_LABELS = {
+  connecting: "CONNECTING",
+  live: "LIVE",
+  retrying: "RETRYING",
+} as const;
+
+const STREAM_STATUS_COLORS = {
+  connecting: "sky",
+  live: "teal",
+  retrying: "orange",
+} as const;
+
 /**
  * 目的: 直近の生成イベントをファーストビューで見せる。
- * 主要責務: 最新イベント一覧の描画
+ * 主要責務: 最新イベント一覧の描画、手動追加ボタンの表示
  * 使用例: DashboardClient から recentAttempts を受け取って描画する
  */
 export function RecentUuids(props: RecentUuidsProps): ReactElement {
@@ -32,11 +49,25 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
       }}
     >
       <Stack h="100%" gap="lg">
-        <SectionHeader
-          eyebrow="Recent Attempts"
-          title="直近の生成イベント"
-          description="このサイトで一番面白い場所なので、ファーストビューに置いています。"
-        />
+        <Group justify="space-between" align="flex-start" gap="md" wrap="wrap">
+          <SectionHeader
+            eyebrow="Recent Attempts"
+            title="直近の生成イベント"
+            description="このサイトで一番面白い場所なので、ファーストビューに置いています。"
+          />
+          <Button size="sm" loading={props.isManualTriggerRunning} onClick={props.onManualTrigger}>
+            手動で 1 件追加
+          </Button>
+        </Group>
+        <Group gap="xs">
+          <Badge color={STREAM_STATUS_COLORS[props.streamStatus]}>
+            {STREAM_STATUS_LABELS[props.streamStatus]}
+          </Badge>
+          <Badge color="gray">最終観測 {props.formatDateTime(props.latestAttemptAt)}</Badge>
+        </Group>
+        <Text size="sm" c="dimmed" style={{ lineHeight: 1.8 }}>
+          {props.manualTriggerMessage}
+        </Text>
         <Divider />
         <Stack gap="sm" className="max-h-[560px] overflow-y-auto pr-1 lg:max-h-[560px]">
           {props.recentAttempts.map((attempt) => {
