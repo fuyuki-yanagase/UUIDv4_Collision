@@ -1,0 +1,5 @@
+/// 目的: UUID 生成の発生源を区別する。
+enum GenerateSource {
+    AUTO
+    MANUAL
+}

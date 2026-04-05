@@ -1,0 +1,16 @@
+/// 目的: 生成済み UUIDv4 の一意集合を保持し、衝突回数を集計する。
+model UuidRegistry {
+    /// UUIDv4 の文字列表現。
+    uuid        String         @id @db.Uuid
+    /// 最初に観測した日時。
+    firstSeenAt DateTime       @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+    /// 最後に観測した日時。
+    lastSeenAt  DateTime       @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+    /// 最後に観測した発生源。
+    lastSource  GenerateSource @map("last_source")
+    /// 同一 UUID を何回観測したか。
+    seenCount   Int            @default(1) @map("seen_count")
+
+    @@index([lastSeenAt(sort: Desc)], map: "uuid_registry_last_seen_at_idx")
+    @@map("uuid_registry")
+}
