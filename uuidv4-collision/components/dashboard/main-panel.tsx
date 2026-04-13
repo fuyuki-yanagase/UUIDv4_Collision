@@ -13,6 +13,8 @@ import type { DashboardSnapshot } from "@/lib/shared/uuid-domain";
 type MainPanelProps = {
   latestAttemptSummary: string;
   snapshot: DashboardSnapshot;
+  showHero?: boolean;
+  showMetrics?: boolean;
 };
 
 /**
@@ -21,37 +23,44 @@ type MainPanelProps = {
  * 使用例: DashboardClient から最新スナップショットを渡して描画する
  */
 export function MainPanel(props: MainPanelProps): ReactElement {
+  const showHero = props.showHero ?? true;
+  const showMetrics = props.showMetrics ?? true;
+
   return (
     <Stack gap={24}>
-      <Stack gap={12}>
+      {showHero ? (
+        <Stack gap={12}>
         <Title order={1} style={{ fontSize: "clamp(2.3rem, 6vw, 4.8rem)", lineHeight: 1.06 }}>
           UUIDv4 がいつか本当に衝突するのか、毎秒ひたすら観測する。
         </Title>
-        <Text c="dimmed" size="lg" maw={700} style={{ lineHeight: 1.85 }}>
+        <Text c="dimmed" size="lg" maw={700} style={{ lineHeight: 1.85, whiteSpace: "pre-line" }}>
           {props.latestAttemptSummary}
         </Text>
       </Stack>
+      ) : null}
 
-      <div className={styles.metricsRow}>
-        <MetricBand
-          label="試行回数"
-          description="これまでに生成して PostgreSQL に保存した総数"
-          value={props.snapshot.stats.totalAttempts.toLocaleString("ja-JP")}
-          toneColor="var(--mantine-color-sky-7)"
-        />
-        <MetricBand
-          label="一意 UUID 数"
-          description="まだ一度しか観測されていない UUID の累積"
-          value={props.snapshot.stats.totalUniqueUuids.toLocaleString("ja-JP")}
-          toneColor="var(--mantine-color-teal-7)"
-        />
-        <MetricBand
-          label="衝突回数"
-          description="既出 UUID と一致したイベントの累積"
-          value={props.snapshot.stats.totalCollisions.toLocaleString("ja-JP")}
-          toneColor="var(--mantine-color-orange-6)"
-        />
-      </div>
+      {showMetrics ? (
+        <div className={styles.metricsRow}>
+          <MetricBand
+            label="試行回数"
+            description="これまでに生成して PostgreSQL に保存した総数"
+            value={props.snapshot.stats.totalAttempts.toLocaleString("ja-JP")}
+            toneColor="var(--mantine-color-sky-7)"
+          />
+          <MetricBand
+            label="一意 UUID 数"
+            description="まだ一度しか観測されていない UUID の累積"
+            value={props.snapshot.stats.totalUniqueUuids.toLocaleString("ja-JP")}
+            toneColor="var(--mantine-color-teal-7)"
+          />
+          <MetricBand
+            label="衝突回数"
+            description="既出 UUID と一致したイベントの累積"
+            value={props.snapshot.stats.totalCollisions.toLocaleString("ja-JP")}
+            toneColor="var(--mantine-color-orange-6)"
+          />
+        </div>
+      ) : null}
     </Stack>
   );
 }
