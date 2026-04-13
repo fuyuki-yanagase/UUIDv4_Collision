@@ -45,6 +45,18 @@ type RecordAttemptInput = {
 };
 
 /**
+ * 概要: UUID の文字列表現を uuid_registry.uuidstr へ保存しやすい形へ正規化する。
+ * 引数: uuid: string - アプリケーション内で扱っている UUIDv4 文字列
+ * 戻り値: string - 検索と比較に使う小文字の UUID 文字列
+ * 例外: なし
+ * 計算量: O(n)
+ * 注意: 現在の検索は normalizeUuidSearchQuery と同じく小文字前提でそろえる。
+ */
+function normalizeStoredUuidString(uuid: string): string {
+  return uuid.trim().toLowerCase();
+}
+
+/**
  * 目的: UUIDv4 の登録、集計、検索を PostgreSQL に対して一元化する。
  * 主要責務: 試行履歴の保存、衝突検知、ダッシュボード用データ取得、検索
  * 使用例: API Route やワーカーから this.recordAttempt(...) を呼び出す
@@ -63,14 +75,15 @@ export class PostgresUuidAttemptRepository {
       await poolClient.query("BEGIN");
 
       try {
+        const normalizedUuidString = normalizeStoredUuidString(input.uuid);
         const insertRegistryResult = await poolClient.query<{ uuid: string }>(
           `
-            INSERT INTO uuid_registry (uuid, first_seen_at, last_seen_at, last_source, seen_count)
-            VALUES ($1::uuid, NOW(), NOW(), $2, 1)
+            INSERT INTO uuid_registry (uuid, uuidstr, first_seen_at, last_seen_at, last_source, seen_count)
+            VALUES ($1::uuid, $2, NOW(), NOW(), $3, 1)
             ON CONFLICT (uuid) DO NOTHING
             RETURNING uuid::text AS uuid
           `,
-          [input.uuid, input.source],
+          [input.uuid, normalizedUuidString, input.source],
         );
 
         const wasCollision = insertRegistryResult.rowCount === 0;
@@ -174,14 +187,14 @@ export class PostgresUuidAttemptRepository {
     const searchResult = await getPostgresPool().query<SearchRow>(
       `
         SELECT
-          uuid::text AS uuid,
+          uuidstr AS uuid,
           seen_count,
           GREATEST(seen_count - 1, 0) AS collision_count,
           first_seen_at,
           last_seen_at,
           last_source
         FROM uuid_registry
-        WHERE $1 = '' OR uuid::text ILIKE $2 ESCAPE '\\'
+        WHERE $1 = '' OR uuidstr ILIKE $2 ESCAPE '\\'
         ORDER BY last_seen_at DESC
         LIMIT $3
       `,

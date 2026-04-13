@@ -1,7 +1,10 @@
 /// 目的: 生成済み UUIDv4 の一意集合を保持し、衝突回数を集計する。
 model UuidRegistry {
-    /// UUIDv4 の文字列表現。
-    uuid        String         @id @db.Uuid
+    /// UUID v4のバイト表現
+    uuid    String @id @db.Uuid
+    /// UUID v4の文字列表現(検索用)
+    uuidstr String @unique @db.VarChar(36)
+
     /// 最初に観測した日時。
     firstSeenAt DateTime       @default(now()) @map("first_seen_at") @db.Timestamptz(6)
     /// 最後に観測した日時。
@@ -12,5 +15,7 @@ model UuidRegistry {
     seenCount   Int            @default(1) @map("seen_count")
 
     @@index([lastSeenAt(sort: Desc)], map: "uuid_registry_last_seen_at_idx")
+    /// TryGramで検索高速化
+    @@index([uuidstr(ops: raw("gin_trgm_ops"))], type: Gin)
     @@map("uuid_registry")
 }
