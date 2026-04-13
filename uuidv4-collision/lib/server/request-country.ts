@@ -13,9 +13,9 @@
  */
 export function inferCountryCodeFromRequest(request: Request): string | null {
   const prioritizedHeaderNames = [
-    "x-vercel-ip-country",
-    "cf-ipcountry",
     "x-country-code",
+    "cf-ipcountry",
+    "x-vercel-ip-country",
     "cloudfront-viewer-country",
   ];
 
@@ -25,6 +25,12 @@ export function inferCountryCodeFromRequest(request: Request): string | null {
     if (normalizedCountryCode) {
       return normalizedCountryCode;
     }
+  }
+
+  const browserCountryCode = normalizeCountryCode(request.headers.get("x-browser-country-code"));
+
+  if (browserCountryCode) {
+    return browserCountryCode;
   }
 
   return inferCountryCodeFromAcceptLanguage(request.headers.get("accept-language"));
