@@ -22,6 +22,45 @@ type DashboardClientProps = {
 const DISPLAY_TIME_ZONE = "Asia/Tokyo";
 
 /**
+ * 概要: ブラウザが保持している優先言語一覧から 2 文字の国コードを推定する。
+ * 引数: なし
+ * 戻り値: string | null - ISO 3166-1 alpha-2 相当の国コード。判定不能なら null
+ * 例外: Intl.Locale 非対応や不正ロケール時の例外は握りつぶして null を返す
+ * 計算量: O(n)
+ * 注意: `navigator.languages` の先頭から順に見て、`ja-JP` のようなロケールなら `JP` を返す。
+ */
+function inferCountryCodeFromBrowser(): string | null {
+  if (typeof navigator === "undefined") {
+    return null;
+  }
+
+  const localeCandidates = navigator.languages.length > 0 ? navigator.languages : [navigator.language];
+
+  for (const localeCandidate of localeCandidates) {
+    if (!localeCandidate) {
+      continue;
+    }
+
+    try {
+      const locale = new Intl.Locale(localeCandidate).maximize();
+      const region = locale.region?.trim().toUpperCase() ?? null;
+
+      if (region && /^[A-Z]{2}$/.test(region)) {
+        return region;
+      }
+    } catch {
+      const fallbackRegionCandidate = localeCandidate.split("-").at(-1)?.trim().toUpperCase() ?? null;
+
+      if (fallbackRegionCandidate && /^[A-Z]{2}$/.test(fallbackRegionCandidate)) {
+        return fallbackRegionCandidate;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * 目的: SSE、検索、手動追加をまとめて扱うダッシュボード UI の親になる。
  * 主要責務: 状態保持、リアルタイム更新、セクションコンポーネントへの props 配線
  * 使用例: app/page.tsx から初期スナップショットを受け取って描画する
@@ -156,8 +195,14 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
     setIsManualTriggerRunning(true);
 
     try {
+      const countryCode = inferCountryCodeFromBrowser();
       const response = await fetch("/api/attempts", {
         method: "POST",
+        headers: countryCode
+          ? {
+              "X-Country-Code": countryCode,
+            }
+          : undefined,
       });
 
       if (!response.ok) {
