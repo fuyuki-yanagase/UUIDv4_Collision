@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS uuid_generation_attempts (
   id BIGSERIAL PRIMARY KEY,
   uuid UUID NOT NULL,
   source TEXT NOT NULL CHECK (source IN ('AUTO', 'MANUAL')),
+  country_code CHAR(2),
   was_collision BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

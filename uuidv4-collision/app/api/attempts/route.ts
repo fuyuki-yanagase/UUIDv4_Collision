@@ -4,6 +4,7 @@
 // =============================================
 
 import { getUuidGenerationService } from "@/lib/server/container";
+import { inferCountryCodeFromRequest } from "@/lib/server/request-country";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,9 +17,12 @@ export const runtime = "nodejs";
  * 計算量: O(1 + recentLimit)
  * 注意: ユーザは UUID 値を指定できず、サーバ側でのみ生成する。
  */
-export async function POST(): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
   const uuidGenerationService = getUuidGenerationService();
-  const attempt = await uuidGenerationService.recordGeneratedAttempt("MANUAL");
+  const attempt = await uuidGenerationService.recordGeneratedAttempt(
+    "MANUAL",
+    inferCountryCodeFromRequest(request),
+  );
   const snapshot = await uuidGenerationService.getDashboardSnapshot(10);
 
   return Response.json({

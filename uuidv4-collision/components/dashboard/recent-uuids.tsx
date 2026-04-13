@@ -101,6 +101,48 @@ type AttemptSurfaceProps = {
 };
 
 /**
+ * 概要: 2 文字の国コードを国旗絵文字へ変換する。
+ * 引数: countryCode: string | null - ISO 3166-1 alpha-2 を想定した国コード
+ * 戻り値: string | null - 変換できた場合は国旗絵文字、できない場合は null
+ * 例外: なし
+ * 計算量: O(1)
+ * 注意: 不正な値はそのまま表示せず null に落として UI 崩れを避ける。
+ */
+function toFlagEmoji(countryCode: string | null): string | null {
+  if (countryCode === null) {
+    return null;
+  }
+
+  const normalizedCountryCode = countryCode.trim().toUpperCase();
+
+  if (!/^[A-Z]{2}$/.test(normalizedCountryCode)) {
+    return null;
+  }
+
+  return Array.from(normalizedCountryCode)
+    .map((character) => {
+      return String.fromCodePoint(127397 + character.charCodeAt(0));
+    })
+    .join("");
+}
+
+/**
+ * 概要: 生成イベントの発生源に応じたアイコンを返す。
+ * 引数: attempt: UuidAttempt - 表示対象の UUID 生成イベント
+ * 戻り値: string - バッジに表示するアイコン文字列
+ * 例外: なし
+ * 計算量: O(1)
+ * 注意: MANUAL で国コードが無い場合は汎用の人物アイコンへフォールバックする。
+ */
+function getSourceIcon(attempt: UuidAttempt): string {
+  if (attempt.source === "AUTO") {
+    return "🤖";
+  }
+
+  return toFlagEmoji(attempt.countryCode) ?? "🧑";
+}
+
+/**
  * 概要: 直近の UUID 生成イベント 1 件分をコンパクトなカードで描画する。
  * 引数: props: AttemptSurfaceProps - 表示対象の試行レコードと日時整形関数
  * 戻り値: ReactElement - イベント表示カード
@@ -110,6 +152,7 @@ type AttemptSurfaceProps = {
  */
 function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
   const isManualAttempt = props.attempt.source === "MANUAL";
+  const sourceIcon = getSourceIcon(props.attempt);
 
   return (
     <Box
@@ -127,7 +170,7 @@ function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
               {props.attempt.wasCollision ? "COLLISION" : "UNIQUE"}
             </Badge>
             <Badge color={isManualAttempt ? "green" : "gray"}>
-              {props.attempt.source}
+              {sourceIcon} {props.attempt.source}
             </Badge>
           </Group>
           <Text size="xs" c="dimmed" ff="mono" style={{ fontVariantNumeric: "tabular-nums" }}>
