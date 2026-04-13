@@ -64,9 +64,9 @@ const COPY = {
   },
   en: {
     mainPanel: {
-      heroTitle: "Observing UUIDv4 collisions\nonce every second",
+      heroTitle: "Monitoring UUIDv4 collisions\none UUID every second",
       totalAttemptsLabel: "Total Attempts",
-      totalAttemptsDescription: "All UUIDs generated and stored in PostgreSQL so far",
+      totalAttemptsDescription: "All UUIDs generated and stored in Database so far",
       totalUniqueUuidsLabel: "Unique UUIDs",
       totalUniqueUuidsDescription: "Cumulative count of UUIDs seen only once",
       totalCollisionsLabel: "Collisions",
@@ -313,8 +313,8 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
         method: "POST",
         headers: countryCode
           ? {
-              "X-Browser-Country-Code": countryCode,
-            }
+            "X-Browser-Country-Code": countryCode,
+          }
           : undefined,
       });
 
@@ -357,17 +357,44 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
           />
 
           <Grid gap={{ base: 32, lg: 40 }} align="start">
-          <Grid.Col span={{ base: 12, lg: 7 }}>
-            <Stack gap={32}>
-              <MainPanel
-                copy={copy.mainPanel}
-                locale={locale}
-                latestAttemptSummary={latestAttemptSummary}
-                snapshot={snapshot}
-                showHero={false}
-              />
+            <Grid.Col span={{ base: 12, lg: 7 }}>
+              <Stack gap={32}>
+                <MainPanel
+                  copy={copy.mainPanel}
+                  locale={locale}
+                  latestAttemptSummary={latestAttemptSummary}
+                  snapshot={snapshot}
+                  showHero={false}
+                />
 
-              <Box hiddenFrom="lg">
+                <Box hiddenFrom="lg">
+                  <RecentUuids
+                    copy={copy.recent}
+                    recentAttempts={snapshot.recentAttempts}
+                    manualTriggerMessage={manualTriggerMessage}
+                    streamStatus={streamStatus}
+                    latestAttemptAt={snapshot.stats.latestAttemptAt}
+                    isManualTriggerRunning={isManualTriggerRunning}
+                    onManualTrigger={() => {
+                      void handleManualTrigger();
+                    }}
+                    formatDateTime={formatDateTimeForLocale}
+                  />
+                </Box>
+
+                <SearchUuid
+                  copy={copy.search}
+                  searchQuery={searchQuery}
+                  searchResults={searchResults}
+                  isSearchLoading={isSearchLoading}
+                  onSearchQueryChange={setSearchQuery}
+                  formatDateTime={formatDateTimeForLocale}
+                />
+              </Stack>
+            </Grid.Col>
+
+            <Grid.Col span={{ base: 12, lg: 5 }}>
+              <Box visibleFrom="lg">
                 <RecentUuids
                   copy={copy.recent}
                   recentAttempts={snapshot.recentAttempts}
@@ -381,34 +408,7 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
                   formatDateTime={formatDateTimeForLocale}
                 />
               </Box>
-
-              <SearchUuid
-                copy={copy.search}
-                searchQuery={searchQuery}
-                searchResults={searchResults}
-                isSearchLoading={isSearchLoading}
-                onSearchQueryChange={setSearchQuery}
-                formatDateTime={formatDateTimeForLocale}
-              />
-            </Stack>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, lg: 5 }}>
-            <Box visibleFrom="lg">
-              <RecentUuids
-                copy={copy.recent}
-                recentAttempts={snapshot.recentAttempts}
-                manualTriggerMessage={manualTriggerMessage}
-                streamStatus={streamStatus}
-                latestAttemptAt={snapshot.stats.latestAttemptAt}
-                isManualTriggerRunning={isManualTriggerRunning}
-                onManualTrigger={() => {
-                  void handleManualTrigger();
-                }}
-                formatDateTime={formatDateTimeForLocale}
-              />
-            </Box>
-          </Grid.Col>
+            </Grid.Col>
           </Grid>
         </Stack>
       </Container>
