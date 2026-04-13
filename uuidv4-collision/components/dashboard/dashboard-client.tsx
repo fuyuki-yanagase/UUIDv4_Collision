@@ -19,6 +19,90 @@ type DashboardClientProps = {
 };
 
 const DISPLAY_TIME_ZONE = "Asia/Tokyo";
+type DashboardLocale = "ja" | "en";
+
+const COPY = {
+  ja: {
+    mainPanel: {
+      heroTitle: "UUIDv4 の衝突を検証する\n毎秒ひたすら観測する",
+      totalAttemptsLabel: "試行回数",
+      totalAttemptsDescription: "これまでに生成して PostgreSQL に保存した総数",
+      totalUniqueUuidsLabel: "一意 UUID 数",
+      totalUniqueUuidsDescription: "まだ一度しか観測されていない UUID の累積",
+      totalCollisionsLabel: "衝突回数",
+      totalCollisionsDescription: "既出 UUID と一致したイベントの累積",
+    },
+    recent: {
+      eyebrow: "Recent Attempts",
+      title: "直近の生成イベント",
+      description: "手動追加を押すと、ワーカーとは別に 1 件だけ UUIDv4 を追加できます。",
+      lastObservedLabel: "最終観測",
+      addOneLabel: "手動で 1 件追加",
+      collisionLabel: "COLLISION",
+      uniqueLabel: "UNIQUE",
+    },
+    search: {
+      eyebrow: "UUID Search",
+      title: "生成済み UUID を検索する",
+      description: "部分一致でも探せます。空欄のままなら最近観測した UUID を表示します。",
+      placeholder: "例: 6f8c8a32",
+      searchingLabel: "Searching...",
+      resultsLabel: "Results",
+      itemsLabel: "items",
+      observedLabel: "観測",
+      collisionLabel: "衝突",
+      firstSeenLabel: "初回",
+      latestSeenLabel: "最新",
+    },
+    unobservedLabel: "未観測",
+    latestAttemptNone: "まだ試行履歴はありません。ワーカーを起動すると、1 秒ごとに記録が積み上がります。",
+    latestAttemptCollision: (uuid: string): string => `衝突発生。\n${uuid} が再び観測されました。`,
+    latestAttemptUnique: (uuid: string): string => `最新 UUID は ${uuid} です。\nいまのところ衝突は確認されていません。`,
+    manualTriggerSuccess: (uuid: string): string => `手動追加で新規 UUID を保存しました: ${uuid}`,
+    manualTriggerCollision: (uuid: string): string => `手動追加で衝突しました: ${uuid}`,
+    manualTriggerError: "手動追加に失敗しました。コンテナと DB の状態を確認してください。",
+  },
+  en: {
+    mainPanel: {
+      heroTitle: "Monitoring UUIDv4 collisions\none UUID every second",
+      totalAttemptsLabel: "Total Attempts",
+      totalAttemptsDescription: "All UUIDs generated and stored in Database so far",
+      totalUniqueUuidsLabel: "Unique UUIDs",
+      totalUniqueUuidsDescription: "Cumulative count of UUIDs seen only once",
+      totalCollisionsLabel: "Collisions",
+      totalCollisionsDescription: "Events that matched a previously seen UUID",
+    },
+    recent: {
+      eyebrow: "Recent Attempts",
+      title: "Recent UUID Events",
+      description: "Click add once to insert exactly one UUIDv4 outside the background worker.",
+      lastObservedLabel: "Last seen",
+      addOneLabel: "Add 1 manually",
+      collisionLabel: "COLLISION",
+      uniqueLabel: "UNIQUE",
+    },
+    search: {
+      eyebrow: "UUID Search",
+      title: "Search Generated UUIDs",
+      description: "Partial matches work too. Leave it empty to list recently observed UUIDs.",
+      placeholder: "Example: 6f8c8a32",
+      searchingLabel: "Searching...",
+      resultsLabel: "Results",
+      itemsLabel: "items",
+      observedLabel: "Seen",
+      collisionLabel: "Collisions",
+      firstSeenLabel: "First",
+      latestSeenLabel: "Latest",
+    },
+    unobservedLabel: "Not observed",
+    latestAttemptNone: "No attempts have been recorded yet.\nStart the worker to append one record every second.",
+    latestAttemptCollision: (uuid: string): string => `Collision detected.\n${uuid} has been observed again.`,
+    latestAttemptUnique: (uuid: string): string => `Latest UUID: ${uuid}.\nNo collisions have been observed so far.`,
+    manualTriggerSuccess: (uuid: string): string => `Stored a new UUID manually: ${uuid}`,
+    manualTriggerCollision: (uuid: string): string => `Manual trigger collided: ${uuid}`,
+    manualTriggerError: "Manual insertion failed. Check the containers and the database state.",
+  },
+} as const;
 
 /**
  * 概要: ブラウザが保持している優先言語一覧から 2 文字の国コードを推定する。
@@ -65,6 +149,7 @@ function inferCountryCodeFromBrowser(): string | null {
  * 使用例: app/page.tsx から初期スナップショットを受け取って描画する
  */
 export function DashboardClient(props: DashboardClientProps): ReactElement {
+  const [locale, setLocale] = useState<DashboardLocale>("ja");
   const [snapshot, setSnapshot] = useState<DashboardSnapshot>(props.initialSnapshot);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<UuidSearchResult[]>(props.initialSearchResults);
@@ -72,16 +157,45 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
   const [isSearchLoading, setIsSearchLoading] = useState<boolean>(false);
   const [streamStatus, setStreamStatus] = useState<"connecting" | "live" | "retrying">("connecting");
   const [manualTriggerMessage, setManualTriggerMessage] = useState<string>(
-    "手動追加を押すと、ワーカーとは別に 1 件だけ UUIDv4 を追加できます。",
+    "",
   );
   const deferredSearchQuery = useDeferredValue(searchQuery);
+  const copy = COPY[locale];
+  const formatDateTimeForLocale = (value: string | null): string => {
+    return formatDateTime(value, locale);
+  };
 
   const latestAttempt = snapshot.recentAttempts[0];
   const latestAttemptSummary = !latestAttempt
-    ? "まだ試行履歴はありません。ワーカーを起動すると、1 秒ごとに記録が積み上がります。"
+    ? copy.latestAttemptNone
     : latestAttempt.wasCollision
-      ? `衝突発生。\n${latestAttempt.uuid} が再び観測されました。`
-      : `最新 UUID は ${latestAttempt.uuid} です。\nいまのところ衝突は確認されていません。`;
+      ? copy.latestAttemptCollision(latestAttempt.uuid)
+      : copy.latestAttemptUnique(latestAttempt.uuid);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const storedLocale = window.localStorage.getItem("uuidv4-collision-locale");
+
+    if (storedLocale === "ja" || storedLocale === "en") {
+      setLocale(storedLocale);
+      return;
+    }
+
+    if (navigator.language.toLowerCase().startsWith("en")) {
+      setLocale("en");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem("uuidv4-collision-locale", locale);
+  }, [locale]);
 
   /**
    * 概要: SSE で受信したスナップショットを低優先度で反映する。
@@ -199,8 +313,8 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
         method: "POST",
         headers: countryCode
           ? {
-              "X-Browser-Country-Code": countryCode,
-            }
+            "X-Browser-Country-Code": countryCode,
+          }
           : undefined,
       });
 
@@ -217,13 +331,13 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
         setSnapshot(payload.snapshot);
         setManualTriggerMessage(
           payload.attempt.wasCollision
-            ? `手動追加で衝突しました: ${payload.attempt.uuid}`
-            : `手動追加で新規 UUID を保存しました: ${payload.attempt.uuid}`,
+            ? copy.manualTriggerCollision(payload.attempt.uuid)
+            : copy.manualTriggerSuccess(payload.attempt.uuid),
         );
       });
     } catch (error) {
       console.error(error);
-      setManualTriggerMessage("手動追加に失敗しました。コンテナと DB の状態を確認してください。");
+      setManualTriggerMessage(copy.manualTriggerError);
     } finally {
       setIsManualTriggerRunning(false);
     }
@@ -234,22 +348,55 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
       <Container size={1240}>
         <Stack gap={32}>
           <MainPanel
+            copy={copy.mainPanel}
+            locale={locale}
             latestAttemptSummary={latestAttemptSummary}
+            onLocaleChange={setLocale}
             snapshot={snapshot}
             showMetrics={false}
           />
 
           <Grid gap={{ base: 32, lg: 40 }} align="start">
-          <Grid.Col span={{ base: 12, lg: 7 }}>
-            <Stack gap={32}>
-              <MainPanel
-                latestAttemptSummary={latestAttemptSummary}
-                snapshot={snapshot}
-                showHero={false}
-              />
+            <Grid.Col span={{ base: 12, lg: 7 }}>
+              <Stack gap={32}>
+                <MainPanel
+                  copy={copy.mainPanel}
+                  locale={locale}
+                  latestAttemptSummary={latestAttemptSummary}
+                  snapshot={snapshot}
+                  showHero={false}
+                />
 
-              <Box hiddenFrom="lg">
+                <Box hiddenFrom="lg">
+                  <RecentUuids
+                    copy={copy.recent}
+                    recentAttempts={snapshot.recentAttempts}
+                    manualTriggerMessage={manualTriggerMessage}
+                    streamStatus={streamStatus}
+                    latestAttemptAt={snapshot.stats.latestAttemptAt}
+                    isManualTriggerRunning={isManualTriggerRunning}
+                    onManualTrigger={() => {
+                      void handleManualTrigger();
+                    }}
+                    formatDateTime={formatDateTimeForLocale}
+                  />
+                </Box>
+
+                <SearchUuid
+                  copy={copy.search}
+                  searchQuery={searchQuery}
+                  searchResults={searchResults}
+                  isSearchLoading={isSearchLoading}
+                  onSearchQueryChange={setSearchQuery}
+                  formatDateTime={formatDateTimeForLocale}
+                />
+              </Stack>
+            </Grid.Col>
+
+            <Grid.Col span={{ base: 12, lg: 5 }}>
+              <Box visibleFrom="lg">
                 <RecentUuids
+                  copy={copy.recent}
                   recentAttempts={snapshot.recentAttempts}
                   manualTriggerMessage={manualTriggerMessage}
                   streamStatus={streamStatus}
@@ -258,35 +405,10 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
                   onManualTrigger={() => {
                     void handleManualTrigger();
                   }}
-                  formatDateTime={formatDateTime}
+                  formatDateTime={formatDateTimeForLocale}
                 />
               </Box>
-
-              <SearchUuid
-                searchQuery={searchQuery}
-                searchResults={searchResults}
-                isSearchLoading={isSearchLoading}
-                onSearchQueryChange={setSearchQuery}
-                formatDateTime={formatDateTime}
-              />
-            </Stack>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, lg: 5 }}>
-            <Box visibleFrom="lg">
-              <RecentUuids
-                recentAttempts={snapshot.recentAttempts}
-                manualTriggerMessage={manualTriggerMessage}
-                streamStatus={streamStatus}
-                latestAttemptAt={snapshot.stats.latestAttemptAt}
-                isManualTriggerRunning={isManualTriggerRunning}
-                onManualTrigger={() => {
-                  void handleManualTrigger();
-                }}
-                formatDateTime={formatDateTime}
-              />
-            </Box>
-          </Grid.Col>
+            </Grid.Col>
           </Grid>
         </Stack>
       </Container>
@@ -302,12 +424,12 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
  * 計算量: O(1)
  * 注意: 時刻はサーバとクライアントの差を避けるため Asia/Tokyo 固定で整形する。
  */
-function formatDateTime(value: string | null): string {
+function formatDateTime(value: string | null, locale: DashboardLocale = "ja"): string {
   if (!value) {
-    return "未観測";
+    return COPY[locale].unobservedLabel;
   }
 
-  const formattedParts = new Intl.DateTimeFormat("ja-JP", {
+  const formattedParts = new Intl.DateTimeFormat(locale === "ja" ? "ja-JP" : "en-GB", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
