@@ -232,12 +232,20 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
   return (
     <Box py={{ base: 36, md: 56 }}>
       <Container size={1240}>
-        <Grid gap={{ base: 32, lg: 40 }} align="start">
+        <Stack gap={32}>
+          <MainPanel
+            latestAttemptSummary={latestAttemptSummary}
+            snapshot={snapshot}
+            showMetrics={false}
+          />
+
+          <Grid gap={{ base: 32, lg: 40 }} align="start">
           <Grid.Col span={{ base: 12, lg: 7 }}>
             <Stack gap={32}>
               <MainPanel
                 latestAttemptSummary={latestAttemptSummary}
                 snapshot={snapshot}
+                showHero={false}
               />
 
               <SearchUuid
@@ -263,7 +271,8 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
               formatDateTime={formatDateTime}
             />
           </Grid.Col>
-        </Grid>
+          </Grid>
+        </Stack>
       </Container>
     </Box>
   );
