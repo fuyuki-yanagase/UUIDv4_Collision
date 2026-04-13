@@ -9,7 +9,18 @@ import { Badge, Box, Button, Code, Divider, Group, Paper, Stack, Text, Title } f
 import type { ReactElement } from "react";
 import type { UuidAttempt } from "@/lib/shared/uuid-domain";
 
+type RecentUuidsCopy = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  lastObservedLabel: string;
+  addOneLabel: string;
+  collisionLabel: string;
+  uniqueLabel: string;
+};
+
 type RecentUuidsProps = {
+  copy: RecentUuidsCopy;
   recentAttempts: UuidAttempt[];
   manualTriggerMessage: string;
   streamStatus: "connecting" | "live" | "retrying";
@@ -52,9 +63,9 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
       <Stack h="100%" gap="lg">
         <Group justify="space-between" align="flex-start" gap="md" wrap="wrap">
           <SectionHeader
-            eyebrow="Recent Attempts"
-            title="直近の生成イベント"
-            description="手動追加を押すと、ワーカーとは別に 1 件だけ UUIDv4 を追加できます。"
+            eyebrow={props.copy.eyebrow}
+            title={props.copy.title}
+            description={props.copy.description}
           />
         </Group>
         <Group justify="space-between" align="center" gap="md" wrap="nowrap">
@@ -63,11 +74,11 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
               {STREAM_STATUS_LABELS[props.streamStatus]}
             </Badge>
             <Badge color="gray">
-              最終観測 {props.formatDateTime(props.latestAttemptAt)}
+              {props.copy.lastObservedLabel} {props.formatDateTime(props.latestAttemptAt)}
             </Badge>
           </Group>
           <Button size="sm" loading={props.isManualTriggerRunning} onClick={props.onManualTrigger}>
-            手動で 1 件追加
+            {props.copy.addOneLabel}
           </Button>
         </Group>
         <Divider />
@@ -81,7 +92,12 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
           {props.recentAttempts.map((attempt, index) => {
             return (
               <Box key={attempt.id}>
-                <AttemptSurface attempt={attempt} formatDateTime={props.formatDateTime} />
+                <AttemptSurface
+                  attempt={attempt}
+                  collisionLabel={props.copy.collisionLabel}
+                  formatDateTime={props.formatDateTime}
+                  uniqueLabel={props.copy.uniqueLabel}
+                />
                 {index < props.recentAttempts.length - 1 ? <Divider /> : null}
               </Box>
             );
@@ -94,7 +110,9 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
 
 type AttemptSurfaceProps = {
   attempt: UuidAttempt;
+  collisionLabel: string;
   formatDateTime: (value: string | null) => string;
+  uniqueLabel: string;
 };
 
 /**
@@ -181,7 +199,7 @@ function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
         <Group justify="space-between" align="center" wrap="wrap">
           <Group gap="xs">
             <Badge color={props.attempt.wasCollision ? "orange" : "teal"}>
-              {props.attempt.wasCollision ? "COLLISION" : "UNIQUE"}
+              {props.attempt.wasCollision ? props.collisionLabel : props.uniqueLabel}
             </Badge>
             <Badge color={isManualAttempt ? "green" : "gray"}>
               {sourceIcon} {sourceLabel}
