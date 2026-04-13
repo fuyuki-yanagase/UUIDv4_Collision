@@ -80,8 +80,8 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
   const latestAttemptSummary = !latestAttempt
     ? "まだ試行履歴はありません。ワーカーを起動すると、1 秒ごとに記録が積み上がります。"
     : latestAttempt.wasCollision
-      ? `衝突発生。${latestAttempt.uuid} が再び観測されました。`
-      : `最新 UUID は ${latestAttempt.uuid} です。いまのところ衝突は確認されていません。`;
+      ? `衝突発生。\n${latestAttempt.uuid} が再び観測されました。`
+      : `最新 UUID は ${latestAttempt.uuid} です。\nいまのところ衝突は確認されていません。`;
 
   /**
    * 概要: SSE で受信したスナップショットを低優先度で反映する。
