@@ -5,8 +5,9 @@
 // Description: 右下の Twitter bot 集約エリアを描画する。
 // =============================================
 
-import { Badge, Divider, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { Divider, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import type { ReactElement } from "react";
+import { AppBadge } from "@/components/util/badge";
 
 /**
  * 目的: 将来の Twitter bot 情報集約エリアを先に確保する。
@@ -74,7 +75,13 @@ function TwitterPlaceholder(props: TwitterPlaceholderProps): ReactElement {
       <Stack gap={6}>
         <Group justify="space-between">
           <Text fw={600}>{props.title}</Text>
-          <Badge color="gray">準備中</Badge>
+          <AppBadge
+            backgroundColor="rgba(120, 131, 155, 0.08)"
+            borderColor="rgba(120, 131, 155, 0.16)"
+            color="var(--mantine-color-gray-7)"
+          >
+            準備中
+          </AppBadge>
         </Group>
         <Text size="sm" c="dimmed" style={{ lineHeight: 1.8 }}>
           {props.description}
