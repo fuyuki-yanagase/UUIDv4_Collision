@@ -5,9 +5,10 @@
 // Description: 直近のリアルタイム UUID 一覧と手動追加ボタンを描画する。
 // =============================================
 
-import { Badge, Box, Button, Code, Divider, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { Box, Button, Code, Divider, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import type { ReactElement } from "react";
 import type { UuidAttempt } from "@/lib/shared/uuid-domain";
+import { AppBadge } from "@/components/util/badge";
 
 type RecentUuidsCopy = {
   eyebrow: string;
@@ -36,10 +37,22 @@ const STREAM_STATUS_LABELS = {
   retrying: "RETRYING",
 } as const;
 
-const STREAM_STATUS_COLORS = {
-  connecting: "sky",
-  live: "teal",
-  retrying: "orange",
+const STREAM_STATUS_BACKGROUNDS = {
+  connecting: "rgba(34, 139, 230, 0.1)",
+  live: "rgba(18, 184, 134, 0.12)",
+  retrying: "rgba(245, 159, 0, 0.12)",
+} as const;
+
+const STREAM_STATUS_BORDERS = {
+  connecting: "rgba(34, 139, 230, 0.18)",
+  live: "rgba(18, 184, 134, 0.22)",
+  retrying: "rgba(245, 159, 0, 0.22)",
+} as const;
+
+const STREAM_STATUS_TEXT_COLORS = {
+  connecting: "var(--mantine-color-sky-7)",
+  live: "var(--mantine-color-teal-7)",
+  retrying: "var(--mantine-color-orange-7)",
 } as const;
 
 /**
@@ -70,12 +83,20 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
         </Group>
         <Group justify="space-between" align="center" gap="md" wrap="nowrap">
           <Group gap="xs" wrap="nowrap">
-            <Badge color={STREAM_STATUS_COLORS[props.streamStatus]}>
+            <AppBadge
+              backgroundColor={STREAM_STATUS_BACKGROUNDS[props.streamStatus]}
+              borderColor={STREAM_STATUS_BORDERS[props.streamStatus]}
+              color={STREAM_STATUS_TEXT_COLORS[props.streamStatus]}
+            >
               {STREAM_STATUS_LABELS[props.streamStatus]}
-            </Badge>
-            <Badge color="gray">
+            </AppBadge>
+            <AppBadge
+              backgroundColor="rgba(120, 131, 155, 0.08)"
+              borderColor="rgba(120, 131, 155, 0.16)"
+              color="var(--mantine-color-gray-7)"
+            >
               {props.copy.lastObservedLabel} {props.formatDateTime(props.latestAttemptAt)}
-            </Badge>
+            </AppBadge>
           </Group>
           <Button size="sm" loading={props.isManualTriggerRunning} onClick={props.onManualTrigger}>
             {props.copy.addOneLabel}
@@ -198,12 +219,28 @@ function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
       <Stack gap={10}>
         <Group justify="space-between" align="center" wrap="wrap">
           <Group gap="xs">
-            <Badge color={props.attempt.wasCollision ? "orange" : "teal"}>
+            <AppBadge
+              backgroundColor={
+                props.attempt.wasCollision ? "rgba(245, 159, 0, 0.12)" : "rgba(18, 184, 134, 0.12)"
+              }
+              borderColor={
+                props.attempt.wasCollision ? "rgba(245, 159, 0, 0.22)" : "rgba(18, 184, 134, 0.22)"
+              }
+              color={
+                props.attempt.wasCollision
+                  ? "var(--mantine-color-orange-7)"
+                  : "var(--mantine-color-teal-7)"
+              }
+            >
               {props.attempt.wasCollision ? props.collisionLabel : props.uniqueLabel}
-            </Badge>
-            <Badge color={isManualAttempt ? "green" : "gray"}>
+            </AppBadge>
+            <AppBadge
+              backgroundColor={isManualAttempt ? "rgba(46, 160, 67, 0.12)" : "rgba(120, 131, 155, 0.08)"}
+              borderColor={isManualAttempt ? "rgba(46, 160, 67, 0.22)" : "rgba(120, 131, 155, 0.16)"}
+              color={isManualAttempt ? "var(--mantine-color-green-7)" : "var(--mantine-color-gray-7)"}
+            >
               {sourceIcon} {sourceLabel}
-            </Badge>
+            </AppBadge>
           </Group>
           <Text size="xs" c="dimmed" ff="mono" style={{ fontVariantNumeric: "tabular-nums" }}>
             {props.formatDateTime(props.attempt.createdAt)}

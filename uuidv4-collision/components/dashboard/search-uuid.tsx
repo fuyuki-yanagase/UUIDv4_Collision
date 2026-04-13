@@ -5,9 +5,10 @@
 // Description: 左下の UUID 検索エリアを描画する。
 // =============================================
 
-import { Badge, Code, Divider, Group, Paper, SimpleGrid, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Code, Divider, Group, Paper, SimpleGrid, Stack, Text, TextInput, Title } from "@mantine/core";
 import type { ReactElement } from "react";
 import type { UuidSearchResult } from "@/lib/shared/uuid-domain";
+import { AppBadge } from "@/components/util/badge";
 
 type SearchUuidCopy = {
   eyebrow: string;
@@ -66,7 +67,13 @@ export function SearchUuid(props: SearchUuidProps): ReactElement {
         <Text size="sm" c="dimmed">
           {props.isSearchLoading ? props.copy.searchingLabel : props.copy.resultsLabel}
         </Text>
-        <Badge color="gray">{props.searchResults.length} {props.copy.itemsLabel}</Badge>
+        <AppBadge
+          backgroundColor="rgba(120, 131, 155, 0.08)"
+          borderColor="rgba(120, 131, 155, 0.16)"
+          color="var(--mantine-color-gray-7)"
+        >
+          {props.searchResults.length} {props.copy.itemsLabel}
+        </AppBadge>
       </Group>
       <Divider my="lg" />
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
@@ -123,9 +130,27 @@ function SearchResultSurface(props: SearchResultSurfaceProps): ReactElement {
           {props.result.uuid}
         </Code>
         <Group gap="xs">
-          <Badge color="sky">{props.copy.observedLabel} {props.result.seenCount.toLocaleString("ja-JP")}</Badge>
-          <Badge color="orange">{props.copy.collisionLabel} {props.result.collisionCount.toLocaleString("ja-JP")}</Badge>
-          <Badge color="gray">{props.result.lastSource}</Badge>
+          <AppBadge
+            backgroundColor="rgba(34, 139, 230, 0.1)"
+            borderColor="rgba(34, 139, 230, 0.18)"
+            color="var(--mantine-color-sky-7)"
+          >
+            {props.copy.observedLabel} {props.result.seenCount.toLocaleString("ja-JP")}
+          </AppBadge>
+          <AppBadge
+            backgroundColor="rgba(245, 159, 0, 0.12)"
+            borderColor="rgba(245, 159, 0, 0.22)"
+            color="var(--mantine-color-orange-7)"
+          >
+            {props.copy.collisionLabel} {props.result.collisionCount.toLocaleString("ja-JP")}
+          </AppBadge>
+          <AppBadge
+            backgroundColor="rgba(120, 131, 155, 0.08)"
+            borderColor="rgba(120, 131, 155, 0.16)"
+            color="var(--mantine-color-gray-7)"
+          >
+            {props.result.lastSource}
+          </AppBadge>
         </Group>
         <Text size="sm" c="dimmed">
           {props.copy.firstSeenLabel}: {props.formatDateTime(props.result.firstSeenAt)}
