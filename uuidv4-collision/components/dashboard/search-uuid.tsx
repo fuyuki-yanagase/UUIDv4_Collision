@@ -9,7 +9,22 @@ import { Badge, Code, Divider, Group, Paper, SimpleGrid, Stack, Text, TextInput,
 import type { ReactElement } from "react";
 import type { UuidSearchResult } from "@/lib/shared/uuid-domain";
 
+type SearchUuidCopy = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  placeholder: string;
+  searchingLabel: string;
+  resultsLabel: string;
+  itemsLabel: string;
+  observedLabel: string;
+  collisionLabel: string;
+  firstSeenLabel: string;
+  latestSeenLabel: string;
+};
+
 type SearchUuidProps = {
+  copy: SearchUuidCopy;
   searchQuery: string;
   searchResults: UuidSearchResult[];
   isSearchLoading: boolean;
@@ -34,9 +49,9 @@ export function SearchUuid(props: SearchUuidProps): ReactElement {
       }}
     >
       <SectionHeader
-        eyebrow="UUID Search"
-        title="生成済み UUID を検索する"
-        description="部分一致でも探せます。空欄のままなら最近観測した UUID を表示します。"
+        eyebrow={props.copy.eyebrow}
+        title={props.copy.title}
+        description={props.copy.description}
       />
       <TextInput
         mt="lg"
@@ -45,13 +60,13 @@ export function SearchUuid(props: SearchUuidProps): ReactElement {
         onChange={(event) => {
           props.onSearchQueryChange(event.currentTarget.value);
         }}
-        placeholder="例: 6f8c8a32"
+        placeholder={props.copy.placeholder}
       />
       <Group justify="space-between" mt="sm">
         <Text size="sm" c="dimmed">
-          {props.isSearchLoading ? "Searching..." : "Results"}
+          {props.isSearchLoading ? props.copy.searchingLabel : props.copy.resultsLabel}
         </Text>
-        <Badge color="gray">{props.searchResults.length} items</Badge>
+        <Badge color="gray">{props.searchResults.length} {props.copy.itemsLabel}</Badge>
       </Group>
       <Divider my="lg" />
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
@@ -59,6 +74,7 @@ export function SearchUuid(props: SearchUuidProps): ReactElement {
           return (
             <SearchResultSurface
               key={result.uuid}
+              copy={props.copy}
               result={result}
               formatDateTime={props.formatDateTime}
             />
@@ -70,6 +86,7 @@ export function SearchUuid(props: SearchUuidProps): ReactElement {
 }
 
 type SearchResultSurfaceProps = {
+  copy: SearchUuidCopy;
   result: UuidSearchResult;
   formatDateTime: (value: string | null) => string;
 };
@@ -106,15 +123,15 @@ function SearchResultSurface(props: SearchResultSurfaceProps): ReactElement {
           {props.result.uuid}
         </Code>
         <Group gap="xs">
-          <Badge color="sky">観測 {props.result.seenCount.toLocaleString("ja-JP")}</Badge>
-          <Badge color="orange">衝突 {props.result.collisionCount.toLocaleString("ja-JP")}</Badge>
+          <Badge color="sky">{props.copy.observedLabel} {props.result.seenCount.toLocaleString("ja-JP")}</Badge>
+          <Badge color="orange">{props.copy.collisionLabel} {props.result.collisionCount.toLocaleString("ja-JP")}</Badge>
           <Badge color="gray">{props.result.lastSource}</Badge>
         </Group>
         <Text size="sm" c="dimmed">
-          初回: {props.formatDateTime(props.result.firstSeenAt)}
+          {props.copy.firstSeenLabel}: {props.formatDateTime(props.result.firstSeenAt)}
         </Text>
         <Text size="sm" c="dimmed">
-          最新: {props.formatDateTime(props.result.lastSeenAt)}
+          {props.copy.latestSeenLabel}: {props.formatDateTime(props.result.lastSeenAt)}
         </Text>
       </Stack>
     </Paper>

@@ -5,13 +5,28 @@
 // Description: 左上のメインヒーローと統計帯を描画する。
 // =============================================
 
-import { Box, Stack, Text, Title } from "@mantine/core";
+import { Box, Group, SegmentedControl, Stack, Text, Title } from "@mantine/core";
 import type { CSSProperties, ReactElement } from "react";
 import styles from "@/components/dashboard/dashboard.module.css";
 import type { DashboardSnapshot } from "@/lib/shared/uuid-domain";
 
+type DashboardLocale = "ja" | "en";
+
+type MainPanelCopy = {
+  heroTitle: string;
+  totalAttemptsLabel: string;
+  totalAttemptsDescription: string;
+  totalUniqueUuidsLabel: string;
+  totalUniqueUuidsDescription: string;
+  totalCollisionsLabel: string;
+  totalCollisionsDescription: string;
+};
+
 type MainPanelProps = {
+  copy: MainPanelCopy;
+  locale: DashboardLocale;
   latestAttemptSummary: string;
+  onLocaleChange?: (locale: DashboardLocale) => void;
   snapshot: DashboardSnapshot;
   showHero?: boolean;
   showMetrics?: boolean;
@@ -31,31 +46,52 @@ export function MainPanel(props: MainPanelProps): ReactElement {
       {showHero ? (
         <Stack gap={12}>
           <Title order={1} style={{ fontSize: "clamp(2.3rem, 6vw, 4.8rem)", lineHeight: 1.06 }}>
-            UUIDv4 の衝突を検証する<br />毎秒ひたすら観測する
+            {props.copy.heroTitle.split("\n").map((line, index) => {
+              return (
+                <span key={`${line}-${index}`}>
+                  {line}
+                  {index < props.copy.heroTitle.split("\n").length - 1 ? <br /> : null}
+                </span>
+              );
+            })}
           </Title>
-          <Text c="dimmed" size="lg" maw={700} style={{ lineHeight: 1.85, whiteSpace: "pre-line" }}>
-            {props.latestAttemptSummary}
-          </Text>
+          <Group justify="space-between" align="flex-end" gap="md" wrap="wrap">
+            <Text c="dimmed" size="lg" maw={700} style={{ lineHeight: 1.85, whiteSpace: "pre-line" }}>
+              {props.latestAttemptSummary}
+            </Text>
+            <SegmentedControl
+              radius="xl"
+              size="sm"
+              value={props.locale}
+              onChange={(value) => {
+                props.onLocaleChange?.(value as DashboardLocale);
+              }}
+              data={[
+                { label: "🇯🇵 日本語", value: "ja" },
+                { label: "🇬🇧 English", value: "en" },
+              ]}
+            />
+          </Group>
         </Stack>
       ) : null}
 
       {showMetrics ? (
         <div className={styles.metricsRow}>
           <MetricBand
-            label="試行回数"
-            description="これまでに生成して PostgreSQL に保存した総数"
+            label={props.copy.totalAttemptsLabel}
+            description={props.copy.totalAttemptsDescription}
             value={props.snapshot.stats.totalAttempts.toLocaleString("ja-JP")}
             toneColor="var(--mantine-color-sky-7)"
           />
           <MetricBand
-            label="一意 UUID 数"
-            description="まだ一度しか観測されていない UUID の累積"
+            label={props.copy.totalUniqueUuidsLabel}
+            description={props.copy.totalUniqueUuidsDescription}
             value={props.snapshot.stats.totalUniqueUuids.toLocaleString("ja-JP")}
             toneColor="var(--mantine-color-teal-7)"
           />
           <MetricBand
-            label="衝突回数"
-            description="既出 UUID と一致したイベントの累積"
+            label={props.copy.totalCollisionsLabel}
+            description={props.copy.totalCollisionsDescription}
             value={props.snapshot.stats.totalCollisions.toLocaleString("ja-JP")}
             toneColor="var(--mantine-color-orange-6)"
           />
