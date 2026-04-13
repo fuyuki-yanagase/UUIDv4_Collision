@@ -144,3 +144,7 @@ ADD COLUMN "country_code" CHAR(2);
 - 手動追加でも UUID 値はユーザ入力させず、必ずサーバ側で生成します
 - SSE は PostgreSQL の `LISTEN/NOTIFY` を使って更新契機を受け取ります
 - 初期テーブルは `docker/postgres/init.sql` で作成します
+
+## その他メモ
+- 国判定にはgeoIP2を使用
+  - https://www.maxmind.com/en/home

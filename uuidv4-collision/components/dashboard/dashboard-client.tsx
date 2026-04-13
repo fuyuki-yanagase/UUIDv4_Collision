@@ -26,7 +26,7 @@ const DISPLAY_TIME_ZONE = "Asia/Tokyo";
  * 戻り値: string | null - ISO 3166-1 alpha-2 相当の国コード。判定不能なら null
  * 例外: Intl.Locale 非対応や不正ロケール時の例外は握りつぶして null を返す
  * 計算量: O(n)
- * 注意: `navigator.languages` の先頭から順に見て、`ja-JP` のようなロケールなら `JP` を返す。
+ * 注意: これは厳密な位置情報ではなくブラウザ設定由来の補助値であり、サーバ側 GeoIP ヘッダが無い環境向けの fallback として使う。
  */
 function inferCountryCodeFromBrowser(): string | null {
   if (typeof navigator === "undefined") {
@@ -199,7 +199,7 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
         method: "POST",
         headers: countryCode
           ? {
-              "X-Country-Code": countryCode,
+              "X-Browser-Country-Code": countryCode,
             }
           : undefined,
       });
