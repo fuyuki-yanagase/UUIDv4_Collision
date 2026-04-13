@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>メンテナンス中 | UUIDv4 Collision Observatory</title>
+    <style>
+      :root {
+        --sky-0: #eef7ff;
+        --sky-1: #d9edff;
+        --sky-4: #63b4ff;
+        --sky-6: #1b90f2;
+        --sky-7: #0b75d5;
+        --ink-1: #e7edf5;
+        --ink-3: #a8b9d1;
+        --ink-5: #5e789f;
+        --ink-7: #374d6d;
+        --ink-8: #283b56;
+        --ink-9: #182537;
+        --surface: rgba(255, 255, 255, 0.92);
+        --surface-border: rgba(133, 170, 214, 0.24);
+        --page-background:
+          radial-gradient(circle at top right, rgba(56, 159, 251, 0.14), transparent 28%),
+          radial-gradient(circle at top left, rgba(11, 117, 213, 0.08), transparent 24%),
+          linear-gradient(180deg, #f7fbff 0%, #f3f8fd 44%, #eef4fb 100%);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background: #eef4fb;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background: var(--page-background);
+        color: var(--ink-9);
+        font-family:
+          "Space Grotesk",
+          "Hiragino Sans",
+          "Hiragino Kaku Gothic ProN",
+          "Noto Sans JP",
+          "Yu Gothic",
+          sans-serif;
+      }
+
+      main {
+        width: 100%;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px 20px;
+      }
+
+      .shell {
+        width: min(920px, 100%);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 14px;
+        border: 1px solid rgba(27, 144, 242, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.64);
+        color: var(--sky-7);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        backdrop-filter: blur(10px);
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--sky-4), var(--sky-7));
+        box-shadow: 0 0 0 5px rgba(27, 144, 242, 0.12);
+      }
+
+      .panel {
+        margin-top: 18px;
+        padding: clamp(24px, 4vw, 40px);
+        border: 1px solid var(--surface-border);
+        border-radius: 28px;
+        background: var(--surface);
+        box-shadow:
+          0 24px 70px rgba(24, 37, 55, 0.08),
+          inset 0 1px 0 rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px);
+      }
+
+      .hero {
+        display: grid;
+        gap: 28px;
+      }
+
+      .hero-copy h1 {
+        margin: 0;
+        font-size: clamp(2.1rem, 5vw, 4.4rem);
+        line-height: 1.04;
+        letter-spacing: -0.03em;
+      }
+
+      .hero-copy p {
+        margin: 14px 0 0;
+        max-width: 760px;
+        color: var(--ink-5);
+        font-size: clamp(1rem, 1.7vw, 1.12rem);
+        line-height: 1.9;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+        gap: 22px;
+        align-items: start;
+      }
+
+      .surface {
+        min-width: 0;
+        padding: 22px;
+        border: 1px solid rgba(133, 170, 214, 0.2);
+        border-radius: 22px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(246, 250, 255, 0.96));
+      }
+
+      .surface h2 {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--sky-7);
+      }
+
+      .surface p {
+        margin: 12px 0 0;
+        color: var(--ink-5);
+        line-height: 1.85;
+      }
+
+      .status-list {
+        margin: 16px 0 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid rgba(133, 170, 214, 0.18);
+      }
+
+      .status-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(133, 170, 214, 0.18);
+        color: var(--ink-8);
+        line-height: 1.7;
+      }
+
+      .status-list li span:last-child {
+        color: var(--ink-5);
+        white-space: nowrap;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 26px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(11, 117, 213, 0.18);
+        background: linear-gradient(180deg, #ffffff, #f1f7ff);
+        color: var(--ink-9);
+        font-weight: 700;
+        text-decoration: none;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          border-color 180ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+        border-color: rgba(11, 117, 213, 0.34);
+        box-shadow: 0 10px 24px rgba(27, 144, 242, 0.12);
+      }
+
+      .button.primary {
+        background: linear-gradient(135deg, var(--sky-6), var(--sky-7));
+        color: #ffffff;
+        border-color: transparent;
+        box-shadow: 0 14px 28px rgba(11, 117, 213, 0.24);
+      }
+
+      .meta {
+        display: grid;
+        gap: 14px;
+      }
+
+      .metrics {
+        display: grid;
+        gap: 18px;
+      }
+
+      .metric {
+        position: relative;
+        padding-bottom: 16px;
+      }
+
+      .metric::before {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 1px;
+        background: rgba(94, 120, 159, 0.24);
+      }
+
+      .metric::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: var(--metric-color);
+        transform: scaleX(0);
+        transform-origin: right;
+        animation: underline-enter 900ms cubic-bezier(0.22, 1, 0.36, 1) 180ms forwards;
+      }
+
+      .metric strong {
+        display: block;
+        color: var(--metric-color);
+        font-size: clamp(1.8rem, 3.4vw, 2.4rem);
+        line-height: 1.05;
+      }
+
+      .metric small {
+        display: block;
+        margin-top: 8px;
+        color: var(--ink-8);
+        font-weight: 600;
+      }
+
+      .metric p {
+        margin: 6px 0 0;
+        color: var(--ink-5);
+        font-size: 0.94rem;
+      }
+
+      .note {
+        margin-top: 18px;
+        color: var(--ink-5);
+        font-size: 0.95rem;
+        line-height: 1.8;
+      }
+
+      .footer {
+        margin-top: 16px;
+        color: var(--ink-5);
+        font-size: 0.92rem;
+      }
+
+      @keyframes underline-enter {
+        from {
+          transform: scaleX(0);
+          transform-origin: left;
+        }
+
+        to {
+          transform: scaleX(1);
+          transform-origin: left;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .status-list li {
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .status-list li span:last-child {
+          white-space: normal;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="shell">
+        <div class="eyebrow">Maintenance Mode</div>
+
+        <section class="panel">
+          <div class="hero">
+            <div class="hero-copy">
+              <h1>いま、観測所を静かに更新しています。</h1>
+              <p>
+                UUIDv4 の記録画面は一時的に停止しています。コンテナ更新や再起動が完了すると、
+                ふだんのリアルタイム表示に自動で戻ります。
+              </p>
+            </div>
+
+            <div class="grid">
+              <section class="surface">
+                <h2>現在の状態</h2>
+                  <p>データベース・ワーカー・バックエンドのいずれかを切り替えている可能性があります。</p>
+                  <p>更新中は新しい UUID の追加や SSE 配信が一時停止します。</p>
+
+                <ul class="status-list">
+                  <li>
+                    <span>ダッシュボード表示</span>
+                    <span>一時停止中</span>
+                  </li>
+                  <li>
+                    <span>UUID リアルタイム更新</span>
+                    <span>再接続待ち</span>
+                  </li>
+                  <li>
+                    <span>手動追加・検索</span>
+                    <span>復旧後に再開</span>
+                  </li>
+                </ul>
+
+                <div class="actions">
+                  <a class="button primary" href="javascript:window.location.reload();">もう一度開く</a>
+                  <a class="button" href="/">トップに戻る</a>
+                </div>
+
+                <p class="note">
+                  数十秒ほどで復旧することが多いです。しばらく待ってから再読み込みしてください。
+                </p>
+              </section>
+
+              <aside class="surface meta">
+                <div class="metrics">
+                  <div class="metric" style="--metric-color: #0b75d5;">
+                    <strong>deploying</strong>
+                    <small>配信レイヤーを切り替え中</small>
+                    <p>nginx の先にあるアプリケーションを入れ替えています。</p>
+                  </div>
+
+                  <div class="metric" style="--metric-color: #0f9d7a;">
+                    <strong>stream paused</strong>
+                    <small>SSE は一時停止</small>
+                    <p>リアルタイム更新は復旧後に自動で再接続されます。</p>
+                  </div>
+
+                  <div class="metric" style="--metric-color: #f08c00;">
+                    <strong>data safe</strong>
+                    <small>データは保持</small>
+                    <p>通常の更新作業では蓄積済みの UUID 履歴は消えません。</p>
+                  </div>
+                </div>
+
+                <div class="footer">
+                  UUIDv4 Collision Observatory
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <script>
+      window.setTimeout(function () {
+        window.location.reload();
+      }, 20000);
+    </script>
+  </body>
+</html>
