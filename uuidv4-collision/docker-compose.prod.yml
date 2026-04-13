@@ -1,7 +1,8 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: uuidv4-collision-postgres
+    container_name: uuidv4-collision-postgres-prod
+    restart: unless-stopped
     environment:
       POSTGRES_DB: uuidv4_collision
       POSTGRES_USER: postgres
@@ -9,7 +10,7 @@ services:
     ports:
       - "${POSTGRES_PORT:-45432}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-prod-data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d uuidv4_collision"]
@@ -20,34 +21,32 @@ services:
   web:
     build:
       context: .
-    container_name: uuidv4-collision-web
-    command: ["pnpm", "dev", "--hostname", "0.0.0.0"]
+      dockerfile: Dockerfile.prod
+    container_name: uuidv4-collision-web-prod
+    restart: unless-stopped
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/uuidv4_collision"
+      NODE_ENV: "production"
     ports:
       - "${WEB_PORT:-43000}:43000"
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
 
   worker:
     build:
       context: .
-    container_name: uuidv4-collision-worker
+      dockerfile: Dockerfile.prod
+    container_name: uuidv4-collision-worker-prod
+    restart: unless-stopped
     command: ["pnpm", "worker"]
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/uuidv4_collision"
+      NODE_ENV: "production"
       WORKER_INTERVAL_MS: "1000"
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - .:/app
-      - /app/node_modules
 
 volumes:
-  postgres-data:
+  postgres-prod-data:

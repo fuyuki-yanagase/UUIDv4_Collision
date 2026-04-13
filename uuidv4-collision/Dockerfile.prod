@@ -1,8 +1,8 @@
 FROM node:24.14-slim
-# FROM gcr.io/distroless/nodejs24-debian12
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV NODE_ENV="production"
 
 RUN corepack enable
 
@@ -13,4 +13,8 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+RUN pnpm build
+
 EXPOSE 43000
+
+CMD ["pnpm", "start"]
