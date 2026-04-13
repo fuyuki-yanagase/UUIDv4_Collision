@@ -23,12 +23,38 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UUIDv4 Collision Observatory",
-  description: "UUIDv4 を 1 秒ごとに PostgreSQL へ追加し、衝突をリアルタイム観測するサイト。",
+  title: "UUIDv4衝突観測所",
+  description:
+    "UUIDv4をひたすら生成し、衝突が起きる瞬間を観測・検索できるサイト。",
+  metadataBase: new URL("https://uuid-v4.fuyuki-connect.net"),
   icons: {
     icon: "/uuid-v4-icon.png",
     shortcut: "/uuid-v4-icon.png",
     apple: "/uuid-v4-icon.png",
+  },
+  openGraph: {
+    title: "UUIDv4衝突観測所",
+    description:
+      "UUIDv4をひたすら生成し、衝突が起きる瞬間を観測・検索できるサイト。",
+    url: "https://uuid-v4.fuyuki-connect.net",
+    siteName: "UUIDv4 Collision Observatory",
+    locale: "ja_JP",
+    type: "website",
+    images: [
+      {
+        url: "/uuidv4-collision-check-and-monitor.png",
+        width: 1200,
+        height: 630,
+        alt: "UUIDv4 Collision Observatory",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "UUIDv4衝突観測所",
+    description:
+      "UUIDv4をひたすら生成し、衝突が起きる瞬間を観測・検索できるサイト。",
+    images: ["/uuidv4-collision-check-and-monitor.png"],
   },
 };
 
