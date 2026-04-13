@@ -44,6 +44,13 @@
     "db:docker:reset": "docker compose down --volumes --remove-orphans",
     "db:docker:logs": "docker compose logs -f postgres",
     "db:docker:psql": "docker compose exec postgres psql -U postgres -d uuidv4_collision",
+    "db:prod:up": "docker compose -f docker-compose.prod.yml up -d postgres",
+    "db:prod:down": "docker compose -f docker-compose.prod.yml stop postgres",
+    "db:prod:restart": "docker compose -f docker-compose.prod.yml restart postgres",
+    "db:prod:clean": "docker compose -f docker-compose.prod.yml rm -f postgres",
+    "db:prod:reset": "docker compose -f docker-compose.prod.yml down --volumes --remove-orphans",
+    "db:prod:logs": "docker compose -f docker-compose.prod.yml logs -f postgres",
+    "db:prod:psql": "docker compose -f docker-compose.prod.yml exec postgres psql -U postgres -d uuidv4_collision",
     "test": "node --import tsx --test test/**/*.test.ts"
   },
   "dependencies": {
