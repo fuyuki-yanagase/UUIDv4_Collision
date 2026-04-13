@@ -34,8 +34,8 @@ docker compose up --build
 
 起動後の URL:
 
-- Web: `http://localhost:3000`
-- PostgreSQL: `localhost:5432`
+- Web: `http://localhost:43000`
+- PostgreSQL: `localhost:45432`
 
 ## 開発用コマンド
 
@@ -44,6 +44,14 @@ pnpm dev
 pnpm worker
 pnpm lint
 pnpm test
+```
+
+Docker の公開ポートを変更したい場合は `.env` の次の値を編集します。
+
+```env
+WEB_PORT=43000
+POSTGRES_PORT=45432
+DATABASE_URL=postgresql://postgres:postgres@localhost:45432/uuidv4_collision
 ```
 
 ## データモデル
