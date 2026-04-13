@@ -2,16 +2,15 @@
 
 // =============================================
 // Module: Dashboard Client
-// Description: ダッシュボード全体の状態管理と 4 セクションの配置を担う。
+// Description: ダッシュボード全体の状態管理と主要コンポーネントの配置を担う。
 // =============================================
 
-import { Box, Container, Stack } from "@mantine/core";
+import { Box, Container, Grid, Stack } from "@mantine/core";
 import { startTransition, useDeferredValue, useEffect, useEffectEvent, useState } from "react";
 import type { ReactElement } from "react";
 import { MainPanel } from "@/components/dashboard/main-panel";
 import { RecentUuids } from "@/components/dashboard/recent-uuids";
 import { SearchUuid } from "@/components/dashboard/search-uuid";
-import { TwitterBot } from "@/components/dashboard/twitter-bot";
 import type { DashboardSnapshot, UuidAttempt, UuidSearchResult } from "@/lib/shared/uuid-domain";
 
 type DashboardClientProps = {
@@ -233,34 +232,38 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
   return (
     <Box py={{ base: 36, md: 56 }}>
       <Container size={1240}>
-        <Stack gap={32}>
-          <MainPanel
-            latestAttemptSummary={latestAttemptSummary}
-            snapshot={snapshot}
-          />
+        <Grid gap={{ base: 32, lg: 40 }} align="start">
+          <Grid.Col span={{ base: 12, lg: 7 }}>
+            <Stack gap={32}>
+              <MainPanel
+                latestAttemptSummary={latestAttemptSummary}
+                snapshot={snapshot}
+              />
 
-          <RecentUuids
-            recentAttempts={snapshot.recentAttempts}
-            manualTriggerMessage={manualTriggerMessage}
-            streamStatus={streamStatus}
-            latestAttemptAt={snapshot.stats.latestAttemptAt}
-            isManualTriggerRunning={isManualTriggerRunning}
-            onManualTrigger={() => {
-              void handleManualTrigger();
-            }}
-            formatDateTime={formatDateTime}
-          />
+              <SearchUuid
+                searchQuery={searchQuery}
+                searchResults={searchResults}
+                isSearchLoading={isSearchLoading}
+                onSearchQueryChange={setSearchQuery}
+                formatDateTime={formatDateTime}
+              />
+            </Stack>
+          </Grid.Col>
 
-          <SearchUuid
-            searchQuery={searchQuery}
-            searchResults={searchResults}
-            isSearchLoading={isSearchLoading}
-            onSearchQueryChange={setSearchQuery}
-            formatDateTime={formatDateTime}
-          />
-
-          <TwitterBot />
-        </Stack>
+          <Grid.Col span={{ base: 12, lg: 5 }}>
+            <RecentUuids
+              recentAttempts={snapshot.recentAttempts}
+              manualTriggerMessage={manualTriggerMessage}
+              streamStatus={streamStatus}
+              latestAttemptAt={snapshot.stats.latestAttemptAt}
+              isManualTriggerRunning={isManualTriggerRunning}
+              onManualTrigger={() => {
+                void handleManualTrigger();
+              }}
+              formatDateTime={formatDateTime}
+            />
+          </Grid.Col>
+        </Grid>
       </Container>
     </Box>
   );
