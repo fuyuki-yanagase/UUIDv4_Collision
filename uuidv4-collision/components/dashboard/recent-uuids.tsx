@@ -139,7 +139,23 @@ function getSourceIcon(attempt: UuidAttempt): string {
     return "🤖";
   }
 
-  return toFlagEmoji(attempt.countryCode) ?? "🧑";
+  return toFlagEmoji(attempt.countryCode) ?? "🌐";
+}
+
+/**
+ * 概要: 生成イベントの発生源バッジに表示する文言を返す。
+ * 引数: attempt: UuidAttempt - 表示対象の UUID 生成イベント
+ * 戻り値: string - バッジに表示する短いラベル
+ * 例外: なし
+ * 計算量: O(1)
+ * 注意: MANUAL では国コードが取れていればそれを優先表示し、取れない場合だけ MANUAL を残す。
+ */
+function getSourceLabel(attempt: UuidAttempt): string {
+  if (attempt.source === "AUTO") {
+    return "AUTO";
+  }
+
+  return attempt.countryCode?.trim().toUpperCase() || "MANUAL";
 }
 
 /**
@@ -153,6 +169,7 @@ function getSourceIcon(attempt: UuidAttempt): string {
 function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
   const isManualAttempt = props.attempt.source === "MANUAL";
   const sourceIcon = getSourceIcon(props.attempt);
+  const sourceLabel = getSourceLabel(props.attempt);
 
   return (
     <Box
@@ -170,7 +187,7 @@ function AttemptSurface(props: AttemptSurfaceProps): ReactElement {
               {props.attempt.wasCollision ? "COLLISION" : "UNIQUE"}
             </Badge>
             <Badge color={isManualAttempt ? "green" : "gray"}>
-              {sourceIcon} {props.attempt.source}
+              {sourceIcon} {sourceLabel}
             </Badge>
           </Group>
           <Text size="xs" c="dimmed" ff="mono" style={{ fontVariantNumeric: "tabular-nums" }}>
