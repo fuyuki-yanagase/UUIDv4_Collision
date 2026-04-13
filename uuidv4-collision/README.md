@@ -64,6 +64,72 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:45432/uuidv4_collision
 
 本番公開では `docker-compose.prod.yml` を使ってください。こちらは `next dev` ではなく `next start` で起動するため、HMR 用の WebSocket に依存しません。
 
+## マイグレーション運用
+
+このアプリは PostgreSQL を直接使っており、初期テーブル作成には `docker/postgres/init.sql` を使います。
+ただし `init.sql` は空の DB ボリュームが作られた最初の 1 回しか実行されません。
+
+そのため、既存 DB にカラムやインデックスを追加した場合は、必ず migration を別途実行してください。
+
+### 新規 DB の場合
+
+- `postgres-data` ボリュームが新規作成される
+- `docker/postgres/init.sql` が自動で実行される
+- 追加の手動 migration は通常不要
+
+### 既存 DB の場合
+
+- `docker/postgres/init.sql` を編集しても既存テーブルには反映されない
+- `prisma/migrations` の SQL を適用する必要がある
+
+### 基本コマンド
+
+ローカルの Docker PostgreSQL に対して migration を適用する例:
+
+```bash
+pnpm db:docker:up
+pnpm exec prisma migrate deploy
+```
+
+`DATABASE_URL` は `.env` を参照するため、ローカルでは通常そのままで実行できます。
+
+### 直近の例
+
+`country_code` 列を追加した変更では、既存 DB に対して次の migration が必要です。
+
+```sql
+ALTER TABLE "uuid_generation_attempts"
+ADD COLUMN "country_code" CHAR(2);
+```
+
+対応するファイル:
+
+- `prisma/migrations/202604060001_add_country_code_to_attempts/migration.sql`
+
+Docker 経由で直接 SQL を流す場合:
+
+```bash
+pnpm db:docker:psql
+```
+
+その後に `psql` 上で:
+
+```sql
+ALTER TABLE "uuid_generation_attempts"
+ADD COLUMN "country_code" CHAR(2);
+```
+
+### 推奨手順
+
+スキーマ変更を含む更新では、次の順番を推奨します。
+
+1. PostgreSQL を起動する
+2. migration を適用する
+3. web / worker を再起動する
+4. 画面表示と `/api/stream` を確認する
+
+本番サーバでも考え方は同じです。既存 DB を使い続ける限り、コード更新だけでは新しい列は生えません。
+
 ## データモデル
 
 - `uuid_registry`

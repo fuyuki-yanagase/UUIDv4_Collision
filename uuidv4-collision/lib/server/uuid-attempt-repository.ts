@@ -14,6 +14,7 @@ type AttemptRow = {
   id: string;
   uuid: string;
   source: GenerationSource;
+  country_code: string | null;
   was_collision: boolean;
   created_at: Date;
 };
@@ -40,6 +41,7 @@ type SearchRow = {
 type RecordAttemptInput = {
   uuid: string;
   source: GenerationSource;
+  countryCode?: string | null;
 };
 
 /**
@@ -87,12 +89,12 @@ export class PostgresUuidAttemptRepository {
         }
 
         const attemptResult = await poolClient.query<AttemptRow>(
-          `
-            INSERT INTO uuid_generation_attempts (uuid, source, was_collision, created_at)
-            VALUES ($1::uuid, $2, $3, NOW())
-            RETURNING id::text AS id, uuid::text AS uuid, source, was_collision, created_at
+            `
+            INSERT INTO uuid_generation_attempts (uuid, source, country_code, was_collision, created_at)
+            VALUES ($1::uuid, $2, $3, $4, NOW())
+            RETURNING id::text AS id, uuid::text AS uuid, source, country_code, was_collision, created_at
           `,
-          [input.uuid, input.source, wasCollision],
+          [input.uuid, input.source, input.countryCode ?? null, wasCollision],
         );
 
         await this.publishDashboardUpdate(poolClient);
@@ -137,7 +139,7 @@ export class PostgresUuidAttemptRepository {
       ),
       postgresPool.query<AttemptRow>(
         `
-          SELECT id::text AS id, uuid::text AS uuid, source, was_collision, created_at
+          SELECT id::text AS id, uuid::text AS uuid, source, country_code, was_collision, created_at
           FROM uuid_generation_attempts
           ORDER BY created_at DESC, id DESC
           LIMIT $1
@@ -225,6 +227,7 @@ export class PostgresUuidAttemptRepository {
       id: parsedId,
       uuid: row.uuid,
       source: row.source,
+      countryCode: row.country_code,
       wasCollision: row.was_collision,
       createdAt: row.created_at.toISOString(),
     };

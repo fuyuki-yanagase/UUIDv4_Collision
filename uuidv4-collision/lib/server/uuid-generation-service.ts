@@ -8,7 +8,11 @@ import { normalizeUuidSearchQuery } from "@/lib/shared/search";
 import type { DashboardSnapshot, GenerationSource, UuidAttempt, UuidSearchResult } from "@/lib/shared/uuid-domain";
 
 type UuidAttemptRepository = {
-  recordAttempt(input: { uuid: string; source: GenerationSource }): Promise<UuidAttempt>;
+  recordAttempt(input: {
+    uuid: string;
+    source: GenerationSource;
+    countryCode?: string | null;
+  }): Promise<UuidAttempt>;
   getDashboardSnapshot(recentLimit: number): Promise<DashboardSnapshot>;
   searchRegistries(normalizedQuery: string, limit: number): Promise<UuidSearchResult[]>;
 };
@@ -40,17 +44,22 @@ export class UuidGenerationService {
   /**
    * 概要: 新しい UUIDv4 を生成して保存する。
    * 引数: source: GenerationSource - AUTO または MANUAL
+   * 引数: countryCode: string | null | undefined - 手動追加を実行したユーザの国コード
    * 戻り値: Promise<UuidAttempt> - 保存された試行レコード
    * 例外: UUID 生成や永続化に失敗した場合は例外を送出する
    * 計算量: O(1)
    * 注意: 手動追加でもユーザは UUID 値を指定できず、常にサーバ側で生成する。
    */
-  public async recordGeneratedAttempt(source: GenerationSource): Promise<UuidAttempt> {
+  public async recordGeneratedAttempt(
+    source: GenerationSource,
+    countryCode?: string | null,
+  ): Promise<UuidAttempt> {
     const generatedUuid = this.uuidFactory();
 
     return await this.repository.recordAttempt({
       uuid: generatedUuid,
       source,
+      countryCode,
     });
   }
 
