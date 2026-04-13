@@ -12,5 +12,7 @@ model UuidRegistry {
     seenCount   Int            @default(1) @map("seen_count")
 
     @@index([lastSeenAt(sort: Desc)], map: "uuid_registry_last_seen_at_idx")
+    /// TryGramで検索高速化
+    @@index([uuid(ops: raw("gin_trgm_ops"))], type: Gin)
     @@map("uuid_registry")
 }
