@@ -4,7 +4,11 @@ import { UuidGenerationService } from "@/lib/server/uuid-generation-service";
 import type { DashboardSnapshot, GenerationSource, UuidAttempt, UuidSearchResult } from "@/lib/shared/uuid-domain";
 
 class FakeUuidAttemptRepository {
-  public lastRecordedInput: { uuid: string; source: GenerationSource } | null = null;
+  public lastRecordedInput: {
+    uuid: string;
+    source: GenerationSource;
+    countryCode?: string | null;
+  } | null = null;
 
   public async recordAttempt(input: {
     uuid: string;
@@ -16,6 +20,7 @@ class FakeUuidAttemptRepository {
       id: 1,
       uuid: input.uuid,
       source: input.source,
+      countryCode: input.countryCode ?? null,
       wasCollision: false,
       createdAt: "2026-04-05T00:00:00.000Z",
     };
@@ -61,6 +66,7 @@ test("recordGeneratedAttempt uses the injected uuid factory and source", async (
   assert.deepEqual(fakeRepository.lastRecordedInput, {
     uuid: "00000000-0000-4000-8000-000000000001",
     source: "MANUAL",
+    countryCode: undefined,
   });
   assert.equal(attempt.uuid, "00000000-0000-4000-8000-000000000001");
 });
