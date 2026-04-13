@@ -3,7 +3,7 @@ model UuidRegistry {
     /// UUID v4のバイト表現
     uuid    String @id @db.Uuid
     /// UUID v4の文字列表現(検索用)
-    uuidstr String @unique @db.Char(36)
+    uuidstr String @unique @db.VarChar(36)
 
     /// 最初に観測した日時。
     firstSeenAt DateTime       @default(now()) @map("first_seen_at") @db.Timestamptz(6)
