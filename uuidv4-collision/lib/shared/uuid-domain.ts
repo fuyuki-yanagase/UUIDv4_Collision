@@ -11,6 +11,7 @@ export type UuidAttempt = {
   id: number;
   uuid: string;
   source: GenerationSource;
+  countryCode: string | null;
   wasCollision: boolean;
   createdAt: string;
 };
