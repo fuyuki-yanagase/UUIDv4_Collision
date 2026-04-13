@@ -25,6 +25,11 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "UUIDv4 Collision Observatory",
   description: "UUIDv4 を 1 秒ごとに PostgreSQL へ追加し、衝突をリアルタイム観測するサイト。",
+  icons: {
+    icon: "/uuid-v4-icon.png",
+    shortcut: "/uuid-v4-icon.png",
+    apple: "/uuid-v4-icon.png",
+  },
 };
 
 /**
