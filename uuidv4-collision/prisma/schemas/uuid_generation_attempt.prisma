@@ -5,7 +5,9 @@ model UuidGenerationAttempt {
     /// 実際に生成された UUIDv4。
     uuid           String         @db.Uuid
     /// 自動生成か手動トリガーかを表す。
-    generateSource GenerateSource
+    generateSource GenerateSource @map("source")
+    /// 手動追加を実行したユーザの国コード。
+    countryCode    String?        @map("country_code") @db.Char(2)
     /// 既存 UUID と一致したか。
     wasCollision   Boolean        @default(false) @map("was_collision")
     /// 試行日時。
