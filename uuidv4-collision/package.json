@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 43000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 43000",
     "lint": "eslint .",
     "worker": "tsx scripts/uuid-worker.ts",
     "worker:dev": "tsx watch scripts/uuid-worker.ts",
