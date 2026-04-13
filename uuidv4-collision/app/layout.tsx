@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import type { ReactElement, ReactNode } from "react";
 import { MantineProvider } from "@mantine/core";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import Script from "next/script";
 import { appMantineTheme } from "@/lib/shared/mantine-theme";
 import "@mantine/core/styles.css";
 import "./globals.css";
@@ -21,6 +22,9 @@ const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
+
+const googleSiteVerificationToken = process.env.GOOGLE_SITE_VERIFICATION;
+const googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const metadata: Metadata = {
   title: "UUIDv4衝突観測所",
@@ -56,6 +60,11 @@ export const metadata: Metadata = {
       "UUIDv4をひたすら生成し、衝突が起きる瞬間を観測・検索できるサイト。",
     images: ["/uuidv4-collision-check-and-monitor.png"],
   },
+  verification: googleSiteVerificationToken
+    ? {
+        google: googleSiteVerificationToken,
+      }
+    : undefined,
 };
 
 /**
@@ -78,6 +87,22 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${ibmPlexMono.variable}`}
     >
       <body>
+        {googleAnalyticsMeasurementId ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsMeasurementId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag("js", new Date());
+                gtag("config", "${googleAnalyticsMeasurementId}");
+              `}
+            </Script>
+          </>
+        ) : null}
         <MantineProvider theme={appMantineTheme} forceColorScheme="light">
           {children}
         </MantineProvider>
