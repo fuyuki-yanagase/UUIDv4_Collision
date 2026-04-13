@@ -30,13 +30,13 @@ export function MainPanel(props: MainPanelProps): ReactElement {
     <Stack gap={24}>
       {showHero ? (
         <Stack gap={12}>
-        <Title order={1} style={{ fontSize: "clamp(2.3rem, 6vw, 4.8rem)", lineHeight: 1.06 }}>
-          UUIDv4 がいつか本当に衝突するのか、毎秒ひたすら観測する。
-        </Title>
-        <Text c="dimmed" size="lg" maw={700} style={{ lineHeight: 1.85, whiteSpace: "pre-line" }}>
-          {props.latestAttemptSummary}
-        </Text>
-      </Stack>
+          <Title order={1} style={{ fontSize: "clamp(2.3rem, 6vw, 4.8rem)", lineHeight: 1.06 }}>
+            UUIDv4がいつか本当に衝突するか、毎秒ひたすら観測する。
+          </Title>
+          <Text c="dimmed" size="lg" maw={700} style={{ lineHeight: 1.85, whiteSpace: "pre-line" }}>
+            {props.latestAttemptSummary}
+          </Text>
+        </Stack>
       ) : null}
 
       {showMetrics ? (
