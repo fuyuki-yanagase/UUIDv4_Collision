@@ -54,8 +54,10 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
           <SectionHeader
             eyebrow="Recent Attempts"
             title="直近の生成イベント"
-            description="このサイトで一番面白い場所なので、ファーストビューに置いています。"
+            description="手動追加を押すと、ワーカーとは別に 1 件だけ UUIDv4 を追加できます。"
           />
+        </Group>
+        <Group justify="space-between" align="center" gap="md" wrap="nowrap">
           <Group gap="xs" wrap="nowrap">
             <Badge color={STREAM_STATUS_COLORS[props.streamStatus]}>
               {STREAM_STATUS_LABELS[props.streamStatus]}
@@ -64,11 +66,6 @@ export function RecentUuids(props: RecentUuidsProps): ReactElement {
               最終観測 {props.formatDateTime(props.latestAttemptAt)}
             </Badge>
           </Group>
-        </Group>
-        <Group justify="space-between" align="center" gap="md" wrap="nowrap">
-          <Text size="sm" c="dimmed" style={{ lineHeight: 1.8, flex: 1 }}>
-            {props.manualTriggerMessage}
-          </Text>
           <Button size="sm" loading={props.isManualTriggerRunning} onClick={props.onManualTrigger}>
             手動で 1 件追加
           </Button>
