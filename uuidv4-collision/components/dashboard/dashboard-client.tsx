@@ -248,6 +248,20 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
                 showHero={false}
               />
 
+              <Box hiddenFrom="lg">
+                <RecentUuids
+                  recentAttempts={snapshot.recentAttempts}
+                  manualTriggerMessage={manualTriggerMessage}
+                  streamStatus={streamStatus}
+                  latestAttemptAt={snapshot.stats.latestAttemptAt}
+                  isManualTriggerRunning={isManualTriggerRunning}
+                  onManualTrigger={() => {
+                    void handleManualTrigger();
+                  }}
+                  formatDateTime={formatDateTime}
+                />
+              </Box>
+
               <SearchUuid
                 searchQuery={searchQuery}
                 searchResults={searchResults}
@@ -259,17 +273,19 @@ export function DashboardClient(props: DashboardClientProps): ReactElement {
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, lg: 5 }}>
-            <RecentUuids
-              recentAttempts={snapshot.recentAttempts}
-              manualTriggerMessage={manualTriggerMessage}
-              streamStatus={streamStatus}
-              latestAttemptAt={snapshot.stats.latestAttemptAt}
-              isManualTriggerRunning={isManualTriggerRunning}
-              onManualTrigger={() => {
-                void handleManualTrigger();
-              }}
-              formatDateTime={formatDateTime}
-            />
+            <Box visibleFrom="lg">
+              <RecentUuids
+                recentAttempts={snapshot.recentAttempts}
+                manualTriggerMessage={manualTriggerMessage}
+                streamStatus={streamStatus}
+                latestAttemptAt={snapshot.stats.latestAttemptAt}
+                isManualTriggerRunning={isManualTriggerRunning}
+                onManualTrigger={() => {
+                  void handleManualTrigger();
+                }}
+                formatDateTime={formatDateTime}
+              />
+            </Box>
           </Grid.Col>
           </Grid>
         </Stack>
