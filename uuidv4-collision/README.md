@@ -1,66 +1,88 @@
-# UUIDv4 Collision Observatory
+# UUIDv4衝突観測所
 
-UUIDv4 を 1 秒ごとに PostgreSQL へ追加し、衝突が起きるかを観測する Next.js アプリです。  
-画面は SSE でリアルタイム更新され、手動トリガーで追加イベントを増やせます。
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.2-111111?logo=nextdotjs)](.)
+[![React](https://img.shields.io/badge/React-19.2.4-149ECA?logo=react&logoColor=white)](.)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](.)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](.)
+[![Mantine](https://img.shields.io/badge/UI-Mantine-339AF0)](.)
 
-## 構成
+UUIDv4 をひたすら生成し、衝突が起きる瞬間を観測・検索できるサイトです。  
+UI は Next.js、生成ワーカーは Node.js、永続化は PostgreSQL で構成されています。
 
-- `web`: Next.js 16。ダッシュボード表示、UUID 検索、手動追加 API、SSE 配信を担当
-- `worker`: Node.js + `tsx`。1 秒ごとに UUIDv4 を生成して PostgreSQL へ保存
-- `postgres`: UUID 一覧、生成履歴、衝突回数を保持
+![UUIDv4 Collision Observatory](./public/uuidv4-collision-check-and-monitor.png)
+
+## 概要
+
+このアプリは、理論上ほぼ衝突しないとされる UUIDv4 を 1 秒ごとに生成し、実際に PostgreSQL に保存しながら観測する実験サイトです。
+
+- ワーカーが UUIDv4 を毎秒生成
+- Next.js が DB 状態を SSE でリアルタイム反映
+- 手動追加で単発イベントも発火可能
+- 検索で既存 UUID を部分一致検索可能
+- GeoIP2 によって手動追加元の国を表示
 
 ## 主な機能
 
 - 1 秒ごとの UUIDv4 自動追加
 - SSE によるリアルタイム更新
 - 手動追加ボタン
-- 直近の生成 UUID 一覧
-- 生成済み UUID の部分一致検索
-- 衝突回数、一意 UUID 数、総試行回数の可視化
+- 直近 10 件の生成イベント表示
+- UUID の部分一致検索
+- 試行回数 / 一意 UUID 数 / 衝突回数の可視化
+- 日本語 / 英語 UI 切替
+- OGP / favicon / GA4 / Search Console 対応
 
-## 追加すると良い機能案
+## 技術スタック
 
-- 最初の衝突までの予測時間や理論値の表示
-- 1 分、1 時間、24 時間の生成レート表示
-- 衝突が起きた瞬間の強調演出
-- UUID の prefix 別ヒートマップ
-- 検索結果の共有リンク
+- Frontend: Next.js 16, React 19, Mantine
+- API: Next.js Route Handlers
+- Realtime: Server-Sent Events
+- Worker: Node.js + `tsx`
+- Database: PostgreSQL 17
+- DB Access: `pg`
+- Migration: Prisma
+- Infra: Docker Compose, Nginx, GeoIP2
 
-## 起動方法
+## アーキテクチャ
 
-まず `.env.example` を `.env` として複製し、値を埋めてください。
+```text
+worker
+  -> UUIDv4 を 1 秒ごとに生成
+  -> PostgreSQL へ保存
+  -> NOTIFY
+
+postgres
+  -> uuid_generation_attempts
+  -> uuid_registry
+
+web
+  -> 初期スナップショット取得
+  -> /api/stream で LISTEN/NOTIFY を SSE 配信
+  -> /api/attempts で手動追加
+  -> /api/search で UUID 検索
+```
+
+## ディレクトリ構成
+
+```text
+app/                      Next.js App Router
+components/dashboard/     ダッシュボード UI
+components/util/          共通 UI 部品
+lib/server/               DB / サービス / リクエスト処理
+lib/shared/               共有型・共通処理
+prisma/                   Prisma schema / migrations
+scripts/                  UUID 生成ワーカー
+docker-compose.yml        開発用 Compose
+docker-compose.prod.yml   本番用 Compose
+```
+
+## セットアップ
+
+まず `.env` を作成します。
 
 ```bash
 cp .env.example .env
 ```
-
-開発用:
-
-```bash
-pnpm docker:up
-```
-
-本番用:
-
-```bash
-pnpm docker:prod:up
-```
-
-起動後の URL:
-
-- Web: `http://localhost:43000`
-- PostgreSQL: `localhost:45432`
-
-## 開発用コマンド
-
-```bash
-pnpm dev
-pnpm worker
-pnpm lint
-pnpm test
-```
-
-Docker の公開ポートを変更したい場合は `.env` の次の値を編集します。
 
 `.env` の主な項目:
 
@@ -77,106 +99,134 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 GOOGLE_SITE_VERIFICATION=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-本番公開では `docker-compose.prod.yml` を使ってください。こちらは `next dev` ではなく `next start` で起動するため、HMR 用の WebSocket に依存しません。
-本番用 compose は `.env` が無いと起動しません。また PostgreSQL は `127.0.0.1` にのみ bind するため、外部へは直接公開されません。
-開発用 compose も `.env` 必須です。`.env.example` は雛形なので、実運用前に `POSTGRES_PASSWORD` などの値を必ず入れ替えてください。
+## 起動方法
 
-### Google Analytics / Search Console
+### 開発用
 
-- `NEXT_PUBLIC_GA_MEASUREMENT_ID`
-  - Google Analytics 4 の Measurement ID
-  - 例: `G-XXXXXXXXXX`
-- `GOOGLE_SITE_VERIFICATION`
-  - Google Search Console の HTML メタタグ検証用トークン
+```bash
+pnpm docker:up
+```
 
-これらを設定すると、`app/layout.tsx` から次が自動で有効になります。
+アクセス先:
 
-- Google Analytics 4 の `gtag.js`
-- Search Console の `google-site-verification` メタタグ
+- Web: `http://localhost:43000`
+- PostgreSQL: `localhost:45432`
 
-本番サーバでは `.env` または compose の `environment` / `env_file` で注入してください。
+### 本番用
+
+```bash
+pnpm docker:prod:up
+```
+
+本番用 compose は `.env` 必須です。  
+また PostgreSQL は `127.0.0.1` にのみ bind するため、外部へ直接公開されません。
+
+## よく使うコマンド
+
+```bash
+pnpm dev
+pnpm worker
+pnpm lint
+pnpm test
+pnpm build
+```
+
+Docker:
+
+```bash
+pnpm docker:up
+pnpm docker:down
+pnpm docker:logs
+pnpm docker:prod:up
+pnpm docker:prod:down
+pnpm db:docker:psql
+pnpm db:prod:psql
+```
 
 ## マイグレーション運用
 
-このアプリは PostgreSQL を直接使っており、初期テーブル作成には `docker/postgres/init.sql` を使います。
-ただし `init.sql` は空の DB ボリュームが作られた最初の 1 回しか実行されません。
-
-そのため、既存 DB にカラムやインデックスを追加した場合は、必ず migration を別途実行してください。
-
-### 新規 DB の場合
-
-- `postgres-data` ボリュームが新規作成される
-- `docker/postgres/init.sql` が自動で実行される
-- 追加の手動 migration は通常不要
-
-### 既存 DB の場合
-
-- `docker/postgres/init.sql` を編集しても既存テーブルには反映されない
-- `prisma/migrations` の SQL を適用する必要がある
+既存 DB でスキーマを変更した場合は、コード更新だけでは反映されません。  
+必ず migration を適用してください。
 
 ### 基本コマンド
-
-ローカルの Docker PostgreSQL に対して migration を適用する例:
 
 ```bash
 pnpm db:docker:up
 pnpm exec prisma migrate deploy
 ```
 
-`DATABASE_URL` は `.env` を参照するため、ローカルでは通常そのままで実行できます。
-
-### 直近の例
-
-`country_code` 列を追加した変更では、既存 DB に対して次の migration が必要です。
-
-```sql
-ALTER TABLE "uuid_generation_attempts"
-ADD COLUMN "country_code" CHAR(2);
-```
-
-対応するファイル:
-
-- `prisma/migrations/202604060001_add_country_code_to_attempts/migration.sql`
-
-Docker 経由で直接 SQL を流す場合:
-
-```bash
-pnpm db:docker:psql
-```
-
-その後に `psql` 上で:
-
-```sql
-ALTER TABLE "uuid_generation_attempts"
-ADD COLUMN "country_code" CHAR(2);
-```
-
 ### 推奨手順
-
-スキーマ変更を含む更新では、次の順番を推奨します。
 
 1. PostgreSQL を起動する
 2. migration を適用する
 3. web / worker を再起動する
 4. 画面表示と `/api/stream` を確認する
 
-本番サーバでも考え方は同じです。既存 DB を使い続ける限り、コード更新だけでは新しい列は生えません。
+## 環境変数
+
+必須:
+
+- `WEB_PORT`
+- `POSTGRES_PORT`
+- `WORKER_INTERVAL_MS`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `DATABASE_URL`
+- `DATABASE_URL_DOCKER`
+
+任意:
+
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+- `GOOGLE_SITE_VERIFICATION`
+
+## Analytics / Search Console
+
+`app/layout.tsx` で以下に対応しています。
+
+- Google Analytics 4
+- Google Search Console のメタタグ検証
+- OGP / Twitter Card
+
+`NEXT_PUBLIC_GA_MEASUREMENT_ID` を設定すると `gtag.js` が有効になります。  
+`GOOGLE_SITE_VERIFICATION` を設定すると `google-site-verification` メタタグが出力されます。
+
+## GeoIP2
+
+手動追加時の国判定には GeoIP2 を使います。
+
+- Nginx が `X-Country-Code` を upstream へ付与
+- アプリはそのヘッダを最優先で採用
+- fallback としてブラウザロケールも利用
+
+参考:
+
+- https://www.maxmind.com/en/home
 
 ## データモデル
 
-- `uuid_registry`
-  - 一意な UUID の集合
-  - `seen_count` で同一 UUID の観測回数を保持
-- `uuid_generation_attempts`
-  - すべての生成試行履歴
-  - `was_collision` で衝突かどうかを記録
+### `uuid_registry`
+
+- 一意な UUID の集合
+- `uuidstr` を検索用文字列として保持
+- `seen_count` で観測回数を保持
+
+### `uuid_generation_attempts`
+
+- すべての生成試行履歴
+- `was_collision` で衝突判定を保持
+- `country_code` で手動追加元の国を保持
 
 ## 実装メモ
 
-- 手動追加でも UUID 値はユーザ入力させず、必ずサーバ側で生成します
-- SSE は PostgreSQL の `LISTEN/NOTIFY` を使って更新契機を受け取ります
-- 初期テーブルは `docker/postgres/init.sql` で作成します
+- UUID 値は常にサーバ側で生成し、ユーザ入力は受け付けません
+- SSE は PostgreSQL の `LISTEN/NOTIFY` を使います
+- UUID 検索は `uuidstr` + trigram index で高速化しています
+- UI は Mantine ベースで、主要タグは自作バッジコンポーネントへ寄せています
 
-## その他メモ
-- 国判定にはgeoIP2を使用
-  - https://www.maxmind.com/en/home
+## 公開前メモ
+
+- `.env` はコミットしない
+- `.env.example` は雛形としてのみ使う
+- `POSTGRES_PASSWORD` は必ず変更する
+- 本番 compose の DB は外部へ直接公開しない
