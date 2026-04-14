@@ -93,7 +93,7 @@ WORKER_INTERVAL_MS=1000
 POSTGRES_DB=uuidv4_collision
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=change-this-password
-DATABASE_URL=postgresql://postgres:change-this-password@localhost:45432/uuidv4_collision
+DATABASE_URL=postgresql://postgres:change-this-password@127.0.0.1:45432/uuidv4_collision
 DATABASE_URL_DOCKER=postgresql://postgres:change-this-password@postgres:5432/uuidv4_collision
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 GOOGLE_SITE_VERIFICATION=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -110,7 +110,7 @@ pnpm docker:up
 アクセス先:
 
 - Web: `http://localhost:43000`
-- PostgreSQL: `localhost:45432`
+- PostgreSQL: `127.0.0.1:45432`
 
 ### 本番用
 
