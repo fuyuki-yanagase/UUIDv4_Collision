@@ -9,7 +9,8 @@
 UUIDv4 を毎秒生成し、PostgreSQL に記録し続けながら、本当に衝突が起きるかを観測するサイトです。  
 Next.js がリアルタイム表示を担当し、別ワーカーが 1 秒ごとに UUIDv4 を追加します。
 
-![UUIDv4 Collision Observatory](./uuidv4-collision/public/uuidv4-collision-check-and-monitor.png)
+<!-- ![UUIDv4 Collision Observatory](./uuidv4-collision/public/uuidv4-collision-check-and-monitor.png) -->
+<img src="./uuidv4-collision/public/uuidv4-collision-check-and-monitor.png" height=200>
 
 ## できること
 
