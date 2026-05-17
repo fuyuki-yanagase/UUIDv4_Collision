@@ -7,9 +7,9 @@
 [![Mantine](https://img.shields.io/badge/UI-Mantine-339AF0)](.)
 
 UUIDv4 をひたすら生成し、衝突が起きる瞬間を観測・検索できるサイトです。  
-UI は Next.js、生成ワーカーは Node.js、永続化は PostgreSQL で構成されています。
+UI は Next.js、生成ワーカーは Node.js、DBは PostgreSQL で構成されています。
 
-![UUIDv4 Collision Observatory](./public/uuidv4-collision-check-and-monitor.png)
+<!-- ![UUIDv4 Collision Observatory](./public/uuidv4-collision-check-and-monitor.png) -->
 
 ## 概要
 
@@ -78,13 +78,7 @@ docker-compose.prod.yml   本番用 Compose
 
 ## セットアップ
 
-まず `.env` を作成します。
-
-```bash
-cp .env.example .env
-```
-
-`.env` の主な項目:
+`.env`の設定
 
 ```env
 WEB_PORT=43000
@@ -118,9 +112,6 @@ pnpm docker:up
 pnpm docker:prod:up
 ```
 
-本番用 compose は `.env` 必須です。  
-また PostgreSQL は `127.0.0.1` にのみ bind するため、外部へ直接公開されません。
-
 ## よく使うコマンド
 
 ```bash
@@ -143,11 +134,6 @@ pnpm db:docker:psql
 pnpm db:prod:psql
 ```
 
-## マイグレーション運用
-
-既存 DB でスキーマを変更した場合は、コード更新だけでは反映されません。  
-必ず migration を適用してください。
-
 ### 基本コマンド
 
 ```bash
@@ -157,10 +143,10 @@ pnpm exec prisma migrate deploy
 
 ### 推奨手順
 
-1. PostgreSQL を起動する
-2. migration を適用する
-3. web / worker を再起動する
-4. 画面表示と `/api/stream` を確認する
+1. PostgreSQL を起動
+2. migration を適用
+3. web / worker を再起動
+4. 画面表示と `/api/stream` を確認
 
 ## 環境変数
 
@@ -180,20 +166,9 @@ pnpm exec prisma migrate deploy
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 - `GOOGLE_SITE_VERIFICATION`
 
-## Analytics / Search Console
-
-`app/layout.tsx` で以下に対応しています。
-
-- Google Analytics 4
-- Google Search Console のメタタグ検証
-- OGP / Twitter Card
-
-`NEXT_PUBLIC_GA_MEASUREMENT_ID` を設定すると `gtag.js` が有効になります。  
-`GOOGLE_SITE_VERIFICATION` を設定すると `google-site-verification` メタタグが出力されます。
-
 ## GeoIP2
 
-手動追加時の国判定には GeoIP2 を使います。
+手動追加時の国判定には GeoIP2 を使用
 
 - Nginx が `X-Country-Code` を upstream へ付与
 - アプリはそのヘッダを最優先で採用
@@ -216,17 +191,3 @@ pnpm exec prisma migrate deploy
 - すべての生成試行履歴
 - `was_collision` で衝突判定を保持
 - `country_code` で手動追加元の国を保持
-
-## 実装メモ
-
-- UUID 値は常にサーバ側で生成し、ユーザ入力は受け付けません
-- SSE は PostgreSQL の `LISTEN/NOTIFY` を使います
-- UUID 検索は `uuidstr` + trigram index で高速化しています
-- UI は Mantine ベースで、主要タグは自作バッジコンポーネントへ寄せています
-
-## 公開前メモ
-
-- `.env` はコミットしない
-- `.env.example` は雛形としてのみ使う
-- `POSTGRES_PASSWORD` は必ず変更する
-- 本番 compose の DB は外部へ直接公開しない
