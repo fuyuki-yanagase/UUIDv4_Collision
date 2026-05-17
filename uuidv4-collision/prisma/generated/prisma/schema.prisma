@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma"
+
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+
+  extensions = [pg_trgm]
+}
+
+/// 目的: UUID 生成の発生源を区別する。
+enum GenerateSource {
+  AUTO
+  MANUAL
+}
+
+/// 目的: UUIDv4 生成の全試行履歴を保持し、時系列表示と衝突表示に使う。
+model UuidGenerationAttempt {
+  /// 表示順と同時刻衝突回避に使う連番 ID。
+  id             BigInt         @id @default(autoincrement())
+  /// 実際に生成された UUIDv4。
+  uuid           String         @db.Uuid
+  /// 自動生成か手動トリガーかを表す。
+  generateSource GenerateSource @map("source")
+  /// 手動追加を実行したユーザの国コード。
+  countryCode    String?        @map("country_code") @db.Char(2)
+  /// 既存 UUID と一致したか。
+  wasCollision   Boolean        @default(false) @map("was_collision")
+  /// 試行日時。
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)], map: "uuid_generation_attempts_created_at_idx")
+  @@index([uuid], map: "uuid_generation_attempts_uuid_idx")
+  @@map("uuid_generation_attempts")
+}
+
+/// 目的: 生成済み UUIDv4 の一意集合を保持し、衝突回数を集計する。
+model UuidRegistry {
+  /// UUID v4のバイト表現
+  uuid    String @id @db.Uuid
+  /// UUID v4の文字列表現(検索用)
+  uuidstr String @unique @db.VarChar(36)
+
+  /// 最初に観測した日時。
+  firstSeenAt DateTime       @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  /// 最後に観測した日時。
+  lastSeenAt  DateTime       @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  /// 最後に観測した発生源。
+  lastSource  GenerateSource @map("last_source")
+  /// 同一 UUID を何回観測したか。
+  seenCount   Int            @default(1) @map("seen_count")
+
+  @@index([lastSeenAt(sort: Desc)], map: "uuid_registry_last_seen_at_idx")
+  /// TryGramで検索高速化
+  @@index([uuidstr(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@map("uuid_registry")
+}
